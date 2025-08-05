@@ -1,11 +1,10 @@
-{
-  "name": "softcity-bot-backend",
-  "version": "1.0.0",
-  "description": "API for Softcity Telegram Bot",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
-    "firebase-admin": "^11.11.1"
-  }
-}
+// ... আপনার API কোডের শুরুতে ...
+const settingsRef = db.ref('settings');
+const settingsSnapshot = await settingsRef.once('value');
+const settings = settingsSnapshot.val();
+const pointsPerAd = settings.pointsPerAd || 10; // অ্যাডমিন প্যানেল থেকে পয়েন্ট নাও, না পেলে ডিফল্ট ১০
+
+// ... এরপর পয়েন্ট যোগ করার লজিকে pointsPerAd ভেরিয়েবলটি ব্যবহার করুন ...
+await userPointsRef.transaction((currentPoints) => {
+    return (currentPoints || 0) + pointsPerAd;
+});
