@@ -1,12 +1,9 @@
-// এই সম্পূর্ণ কোডটি আপনার api/claim-reward.js ফাইলে পেস্ট করুন
-// এটি Environment Variables ব্যবহার করে, যা সবচেয়ে নিরাপদ পদ্ধতি
+// এই সম্পূর্ণ নতুন কোডটি আপনার api/claim-reward.js ফাইলে পেস্ট করুন
 
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getDatabase } = require('firebase-admin/database');
 
 // --- Firebase Admin SDK সেটআপ (নিরাপদ উপায়) ---
-// এই কোডটি Vercel-এর Environment Variables থেকে আপনার গোপন তথ্যগুলো খুঁজে নেবে।
-// কোডের ভেতরে সরাসরি কোনো গোপন কী লেখা নেই।
 try {
   const serviceAccount = {
     project_id: process.env.FIREBASE_PROJECT_ID,
@@ -20,46 +17,76 @@ try {
     client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL
   };
 
-  // Firebase অ্যাপটি যদি আগে থেকে ইনিশিয়ালাইজ করা না থাকে, তবেই নতুন করে ইনিশিয়ালাইজ করুন
   if (!initializeApp.length) {
       initializeApp({
           credential: cert(serviceAccount),
-          databaseURL: "https://giveawaybd-default-rtdb.firebaseio.com" // আপনার ডাটাবেস ইউআরএল
+          databaseURL: "https://giveawaybd-default-rtdb.firebaseio.com"
       });
   }
 } catch (error) {
   console.error('Firebase Admin SDK Initialization Error:', error.message);
 }
 
-
 const db = getDatabase();
 
-// --- মূল API ফাংশন যা Adsgram থেকে কল হবে ---
+// --- মূল API ফাংশন ---
 export default async function handler(req, res) {
-    // Adsgram থেকে পাঠানো user_id নিন
     const { user_id } = req.query;
 
     if (!user_id) {
         return res.status(400).json({ error: 'User ID is required' });
     }
 
-    // >>> এখানেই আপনি পুরস্কারের পয়েন্ট নির্ধারণ করবেন <<<
-    const pointsPerAd = 10; // প্রতিটি অ্যাডের জন্য ১০ পয়েন্ট
-
-    // ডেটাবেসে ব্যবহারকারীর পয়েন্টের রেফারেন্স নিন
-    const userPointsRef = db.ref(`users/${user_id}/points`);
-
     try {
-        // Firebase Transaction ব্যবহার করে নিরাপদে পয়েন্ট আপডেট করুন
+        // --- ডেটাবেস থেকে সেটিংস এবং ব্যবহারকারীর ডেটা একসাথে নিন ---
+        const settingsRef = db.ref('settings');
+        const userStatsRef = db.ref(`users/${user_id}/stats`);
+        
+        const [settingsSnapshot, userStatsSnapshot] = await Promise.all([
+            settingsRef.once('value'),
+            userStatsRef.once('value')
+        ]);
+        
+        const settings = settingsSnapshot.val() || {};
+        const userStats = userStatsSnapshot.val() || {};
+
+        const dailyAdLimit = settings.dailyAdLimit || 20; // ডিফল্ট ২০
+
+        // --- আজকের তারিখ YYYY-MM-DD ফরম্যাটে নিন ---
+        const today = new Date().toISOString().slice(0, 10);
+        
+        // --- ব্যবহারকারীর আজকের ডেটা রিসেট করুন (যদি তারিখ ভিন্ন হয়) ---
+        let todayAdsWatched = 0;
+        if (userStats.lastAdWatchedDate === today) {
+            todayAdsWatched = userStats.adsWatched || 0;
+        } else {
+            // তারিখ পরিবর্তন হলে, আজকের সংখ্যা ০ থেকে শুরু হবে
+            await userStatsRef.update({ lastAdWatchedDate: today, adsWatched: 0 });
+        }
+
+        // --- Daily Ad Limit চেক করুন ---
+        if (todayAdsWatched >= dailyAdLimit) {
+            return res.status(429).json({ error: 'Daily ad limit reached. Please try again tomorrow.' });
+        }
+
+        // --- পয়েন্ট যোগ করুন ---
+        const pointsPerAd = settings.pointsPerAd || 10; // ডিফল্ট ১০
+        const userPointsRef = db.ref(`users/${user_id}/points`);
+        
         await userPointsRef.transaction((currentPoints) => {
             return (currentPoints || 0) + pointsPerAd;
         });
 
-        // সফলভাবে পয়েন্ট যোগ হয়েছে
-        res.status(200).json({ success: true, message: `${pointsPerAd} points added successfully.` });
+        // --- আজকের দেখা অ্যাডের সংখ্যা ১ বাড়ান ---
+        await userStatsRef.update({
+            adsWatched: todayAdsWatched + 1
+        });
+        
+        // সফল বার্তা পাঠান
+        res.status(200).json({ success: true, message: `${pointsPerAd} points added.` });
 
     } catch (error) {
-        console.error('Firebase Transaction Error:', error);
-        res.status(500).json({ error: 'Failed to add points' });
+        console.error('API Error:', error);
+        res.status(500).json({ error: 'An internal server error occurred.' });
     }
-      }
+}
