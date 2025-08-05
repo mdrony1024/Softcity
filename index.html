@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Cash Bazar</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --gradient-start: #7f52ff; --gradient-end: #d152ff;
+            --light-bg: #f3f4f6; --light-card-bg: #ffffff; --light-text: #111827;
+            --light-secondary-text: #6b7280; --light-border: #e5e7eb;
+            --dark-bg: #1f2937; --dark-card-bg: #374151; --dark-text: #f9fafb;
+            --dark-secondary-text: #9ca3af; --dark-border: #4b5563;
+            --accent-color: #5856d6; --accent-hover: #4c4ac6; --gold: #ffc700;
+            --silver: #c0c0c0; --bronze: #cd7f32;
+        }
+        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0 0 100px 0; transition: background-color 0.3s, color 0.3s; }
+        body.light { --bg-color: var(--light-bg); --card-bg-color: var(--light-card-bg); --text-color: var(--light-text); --secondary-text-color: var(--light-secondary-text); --border-color: var(--light-border); }
+        body.dark { --bg-color: var(--dark-bg); --card-bg-color: var(--dark-card-bg); --text-color: var(--dark-text); --secondary-text-color: var(--dark-secondary-text); --border-color: var(--dark-border); }
+        body { background-color: var(--bg-color); color: var(--text-color); }
+        .container { width: 100%; max-width: 500px; margin: 0 auto; padding: 0 15px; box-sizing: border-box; }
+        .hidden { display: none !important; }
+        .view { animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; }
+        .top-header .title { font-size: 20px; font-weight: 600; }
+        #theme-toggle { background: var(--card-bg-color); border: 1px solid var(--border-color); color: var(--text-color); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+        .header-bg { background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)); height: 120px; border-radius: 0 0 30px 30px; margin: 0 -15px 0 -15px; position: absolute; top: 0; left: 0; right: 0; z-index: -1; }
+        .profile-card { background: var(--card-bg-color); border-radius: 20px; padding: 20px; text-align: center; margin-top: 50px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); position: relative; }
+        .profile-pic { width: 80px; height: 80px; border-radius: 50%; background: #fff; margin: -60px auto 10px; border: 4px solid var(--card-bg-color); display: flex; align-items: center; justify-content: center; }
+        .profile-pic img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        #user-name { font-size: 20px; font-weight: 600; }
+        #user-points { background-color: var(--accent-color); color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; font-size: 14px; margin-top: 5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .stat-item .value { font-size: 18px; font-weight: 600; }
+        .stat-item .label { font-size: 12px; color: var(--secondary-text-color); }
+        .action-button { width: 100%; padding: 12px; background-color: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); border-radius: 12px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .action-button:hover { background-color: var(--accent-color); color: white; }
+        .card { background: var(--card-bg-color); border-radius: 15px; padding: 20px; margin-top: 20px; }
+        .card-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; }
+        .notice-card { background-color: var(--accent-color); color: white; padding: 15px; border-radius: 10px; margin-top: 20px; text-align: center; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; box-sizing: border-box; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-color); font-size: 14px; }
+        .shop-item { border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .shop-item h4 { margin-top: 0; }
+        .price-tag { font-size: 12px; color: var(--secondary-text-color); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--card-bg-color); display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); border-top: 1px solid var(--border-color); z-index: 100; flex-wrap: wrap; }
+        .nav-item { cursor: pointer; text-align: center; color: var(--secondary-text-color); font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: color 0.2s; padding: 0 5px; }
+        .nav-item.active { color: var(--accent-color); }
+        .nav-item svg { width: 24px; height: 24px; }
+    </style>
+</head>
+<body class="light">
+    
+    <div class="header-bg"></div>
+    <div class="top-header container">
+        <h1 class="title">Cash Bazar 💸</h1>
+        <button id="theme-toggle">🌙</button>
+    </div>
+
+    <div class="container">
+        <!-- Views Wrapper -->
+        <div id="views-container">
+            <!-- Home View -->
+            <div id="home-view" class="view">
+                 <div class="profile-card">
+                    <div class="profile-pic"><img id="profile-img" src="" alt="P"></div>
+                    <h2 id="user-name">Loading...</h2>
+                    <div id="user-points">0 Points</div>
+                    <div class="stats-grid">
+                        <div class="stat-item"><div class="value" id="stats-today-ads">0</div><div class="label">Today's Ads</div></div>
+                        <div class="stat-item"><div class="value" id="stats-total-ads">0</div><div class="label">Total Ads</div></div>
+                        <div class="stat-item"><div class="value" id="stats-referrals">0</div><div class="label">Referrals</div></div>
+                    </div>
+                    <button class="action-button" id="leaderboard-btn">🏆 Leaderboard</button>
+                </div>
+
+                <div id="notice-card" class="card notice-card hidden">
+                    <h3 class="card-title" style="color: white;">📢 Notice</h3>
+                    <p id="notice-text" style="font-size: 14px;"></p>
+                 </div>
+
+                <div class="card">
+                    <h3 class="card-title">Welcome, <span id="welcome-name">User</span>!</h3>
+                    <p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;">Complete tasks, invite friends, and earn points.</p>
+                    <button class="action-button" style="background-color: var(--accent-color); color: white;" id="join-channel-btn">🚀 Join Channel</button>
+                </div>
+            </div>
+
+            <!-- Tasks View -->
+            <div id="tasks-view" class="view hidden">
+                <div class="card">
+                    <h3 class="card-title">Promote Services</h3>
+                    <p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;">আপনার ব্যালেন্স দিয়ে আপনার চ্যানেল প্রোমোট করুন।</p>
+                    <button class="action-button" id="go-to-shop-btn" style="margin-top: 15px;">🚀 Promote Now</button>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Watch Ads & Earn</h3>
+                    <p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;" id="ads-left-text"></p>
+                    <button class="action-button" style="background-color: var(--accent-color); color: white;" id="watch-ad-btn">▶️ Watch Ad</button>
+                </div>
+            </div>
+
+            <!-- Shop View -->
+            <div id="shop-view" class="view hidden">
+                 <div class="card">
+                    <h3 class="card-title">🛒 Shop</h3>
+                    <p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;">Use your points to buy services.</p>
+                    <div class="shop-item">
+                        <h4>Buy Telegram Members</h4>
+                        <p class="price-tag">Price: 100 points per member</p>
+                        <div class="form-group"><label for="shop-member-link">Channel/Group Link</label><input type="text" id="shop-member-link" placeholder="e.g., https://t.me/yourchannel"></div>
+                        <div class="form-group"><label for="shop-member-quantity">Quantity</label><input type="number" id="shop-member-quantity" placeholder="e.g., 100"></div>
+                        <button class="action-button" onclick="handlePurchase('members')">Buy Members</button>
+                    </div>
+                    <div class="shop-item">
+                        <h4>Buy Post Views</h4>
+                        <p class="price-tag">Price: 10 points per view</p>
+                        <div class="form-group"><label for="shop-view-link">Post Link</label><input type="text" id="shop-view-link" placeholder="e.g., https://t.me/yourchannel/123"></div>
+                        <div class="form-group"><label for="shop-view-quantity">Quantity</label><input type="number" id="shop-view-quantity" placeholder="e.g., 1000"></div>
+                        <button class="action-button" onclick="handlePurchase('views')">Buy Views</button>
+                    </div>
+                    <div class="shop-item">
+                        <h4>Buy Post Reactions</h4>
+                        <p class="price-tag">Price: 20 points per reaction (Reaction will be random)</p>
+                        <div class="form-group"><label for="shop-reaction-link">Post Link</label><input type="text" id="shop-reaction-link" placeholder="e.g., https://t.me/yourchannel/123"></div>
+                        <div class="form-group"><label for="shop-reaction-quantity">Quantity</label><input type="number" id="shop-reaction-quantity" placeholder="e.g., 50"></div>
+                        <button class="action-button" onclick="handlePurchase('reactions')">Buy Reactions</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bonus View -->
+            <div id="bonus-view" class="view hidden">
+                <div class="card">
+                    <h3 class="card-title">🎁 Special Bonus</h3>
+                    <p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;">Click the button below to visit our partner's page and complete offers to earn extra points!</p>
+                    <button class="action-button" style="background-color: var(--accent-color); color: white; margin-top: 15px;" id="open-bonus-link-btn">Open Bonus Page</button>
+                </div>
+            </div>
+
+            <!-- Withdraw View -->
+            <div id="withdraw-view" class="view hidden">
+                <div class="card" id="withdraw-card">
+                    <h3 class="card-title">Withdraw Points</h3>
+                    <div class="form-group">
+                        <label>Balance: <span id="withdraw-balance">0</span> points</label>
+                        <label style="font-size:12px; color:var(--secondary-text-color)">Min: <span id="min-withdraw">...</span></label>
+                        <input type="number" id="withdraw-amount" placeholder="e.g., 20000">
+                    </div>
+                    <div class="form-group">
+                        <label for="withdraw-method">Method</label>
+                        <select id="withdraw-method"></select>
+                    </div>
+                    <div class="form-group"><label for="withdraw-account">Account Details</label><input type="text" id="withdraw-account" placeholder="Your account number or ID"></div>
+                    <button class="action-button" id="submit-withdraw-btn" style="background-color: var(--accent-color); color: white;">Submit Request</button>
+                </div>
+                <div class="card hidden" id="withdraw-disabled-card"><p>Withdrawal is temporarily disabled. Please check back later.</p></div>
+            </div>
+
+            <!-- History View -->
+            <div id="history-view" class="view hidden">
+                <div class="card">
+                    <h3 class="card-title">Withdrawal History</h3>
+                    <div id="history-list"><p>No withdrawal history.</p></div>
+                </div>
+            </div>
+
+            <!-- Referral View -->
+            <div id="referral-view" class="view hidden">
+                 <div class="card">
+                    <h3 class="card-title">Invite & Earn</h3>
+                    <p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;">আপনার বন্ধুদের আমন্ত্রণ জানান এবং তাদের আয়ের উপর আজীবন ১০% রেফারেল কমিশন উপভোগ করুন।</p>
+                    <input type="text" id="referral-link" readonly style="width:100%; box-sizing:border-box; text-align:center; margin-bottom:10px; background:var(--bg-color); border:1px dashed var(--border-color);">
+                    <button class="action-button" id="share-link-btn">Share My Link</button>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Top Referrers</h3>
+                    <div id="top-referrers-list"><p>Loading top referrers...</p></div>
+                </div>
+            </div>
+            
+            <!-- Leaderboard View -->
+            <div id="leaderboard-page-view" class="view hidden">
+                <div class="card">
+                    <h3 class="card-title">🏆 Leaderboard</h3>
+                    <div id="leaderboard-list"><p>Loading leaderboard...</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <nav class="bottom-nav">
+        <div class="nav-item active" data-view="home-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home</div>
+        <div class="nav-item" data-view="tasks-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 14H4V6h16zM6 10h4v4H6zm6 0h6v4h-6z"/></svg>Tasks</div>
+        <div class="nav-item" data-view="shop-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M17 18c-1.11 0-2 .89-2 2s.89 2 2 2 2-.89 2-2-.89-2-2-2zm-12 0c-1.11 0-2 .89-2 2s.89 2 2 2 2-.89 2-2-.89-2-2-2zm1 0h10V4H6v14zM5.21 2.77L4.27 2H2v2h2.21l3.58 7.59-1.35 2.44A2 2 0 0 0 8 16h9v-2H8.53l1.1-2H15.7l3.58-6.41L18.63 4H19V2h-3.45z"/></svg>Shop</div>
+        <div class="nav-item" data-view="bonus-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2m-8-1a1 1 0 0 1 1-1 1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1M12 19a3 3 0 0 1-3-3h6a3 3 0 0 1-3 3z"/></svg>Bonus</div>
+        <div class="nav-item" data-view="withdraw-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2m14 14V8H5v10zm-7-7a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-3-3 3 3 0 0 1 3-3z"/></svg>Withdraw</div>
+        <div class="nav-item" data-view="history-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 0 1 7-7 7 7 0 0 1 7 7 7 7 0 0 1-7 7v2a9 9 0 0 0 9-9 9 9 0 0 0-9-9m-1 5v5l4.25 2.52.75-1.23-3.5-2.08V8z"/></svg>History</div>
+        <div class="nav-item" data-view="referral-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M16 11a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3m-8 0a5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5m0 8c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4m11.5-3.5a2.5 2.5 0 0 0-2.5-2.5 2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5m-2.5 4c-1.95 0-5.8 1-5.8 3v1.5h11.6V20c0-2-3.85-3-5.8-3z"/></svg>Referral</div>
+    </nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const firebaseConfig = {
+        apiKey: "AIzaSyDVNsMeB1jzOcIqAJjryUYmipT_SKrJi9k",
+        authDomain: "giveawaybd.firebaseapp.com",
+        databaseURL: "https://giveawaybd-default-rtdb.firebaseio.com",
+        projectId: "giveawaybd",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const SHOP_PRICES = { members: 100, views: 10, reactions: 20 };
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    let currentUser = {}; 
+    let appSettings = {};
+    const userId = tg.initDataUnsafe?.user?.id || 'test_user_123'; 
+    const userName = tg.initDataUnsafe?.user?.first_name || 'Test User';
+    
+    const views = document.querySelectorAll('.view');
+    const navItems = document.querySelectorAll('.nav-item');
+
+    function navigate(viewId) {
+        views.forEach(v => v.classList.add('hidden'));
+        document.getElementById(viewId)?.classList.remove('hidden');
+        navItems.forEach(item => item.classList.toggle('active', item.dataset.view === viewId));
+    }
+
+    function updateUI(userData) {
+        if (!userData) return;
+        currentUser = userData;
+        
+        document.getElementById('user-name').textContent = userData.name || 'User';
+        document.getElementById('welcome-name').textContent = userData.name || 'User';
+        document.getElementById('user-points').textContent = `${userData.points || 0} Points`;
+        document.getElementById('withdraw-balance').textContent = userData.points || 0;
+        
+        if (appSettings.botUsername && userData.referralCode) {
+            document.getElementById('referral-link').value = `https://t.me/${appSettings.botUsername}?start=${userData.referralCode}`;
+        }
+        
+        const noticeCard = document.getElementById('notice-card');
+        if (userData.notice) {
+            document.getElementById('notice-text').innerText = userData.notice;
+            noticeCard.classList.remove('hidden');
+        } else {
+            noticeCard.classList.add('hidden');
+        }
+    }
+
+    function promptForWhatsAppNotification(message, groupInviteLink) {
+        if (!groupInviteLink) return;
+        tg.showPopup({
+            title: "Notify Admin",
+            message: "To ensure faster processing, please notify the admins on WhatsApp.",
+            buttons: [{ id: 'send_whatsapp', type: 'default', text: 'Notify on WhatsApp' }, { type: 'cancel' }]
+        }, (buttonId) => {
+            if (buttonId === 'send_whatsapp') {
+                tg.openLink(groupInviteLink);
+            }
+        });
+    }
+
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => navigate(e.currentTarget.dataset.view));
+    });
+
+    document.getElementById('leaderboard-btn').addEventListener('click', () => navigate('leaderboard-page-view'));
+    document.getElementById('go-to-shop-btn').addEventListener('click', () => navigate('shop-view'));
+    document.getElementById('join-channel-btn').addEventListener('click', () => {
+        if (appSettings.joinChannelUrl) tg.openLink(appSettings.joinChannelUrl);
+    });
+    document.getElementById('open-bonus-link-btn').addEventListener('click', () => {
+        if (appSettings.bonusUrl) tg.openLink(appSettings.bonusUrl);
+    });
+    document.getElementById('share-link-btn').addEventListener('click', () => {
+        const link = document.getElementById('referral-link').value;
+        if(link) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}`);
+    });
+
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+        const newTheme = document.body.classList.contains('light') ? 'dark' : 'light';
+        document.body.className = newTheme;
+        localStorage.setItem('theme', newTheme);
+    });
+
+    document.getElementById('submit-withdraw-btn').addEventListener('click', () => {
+        const amount = parseInt(document.getElementById('withdraw-amount').value, 10);
+        const method = document.getElementById('withdraw-method').value;
+        const account = document.getElementById('withdraw-account').value;
+        
+        if (!appSettings.isWithdrawEnabled) {
+            tg.showAlert("Withdrawal is currently disabled."); return;
+        }
+        if (!method) {
+            tg.showAlert('No withdrawal method is available.'); return;
+        }
+        if (!amount || amount < (appSettings.minWithdraw || 0) || !account) {
+            tg.showAlert(`Please check the amount (min: ${appSettings.minWithdraw || 0}) and account details.`); return;
+        }
+        if ((currentUser.points || 0) < amount) {
+            tg.showAlert("You don't have enough points."); return;
+        }
+
+        const newPoints = (currentUser.points || 0) - amount;
+        const requestData = { userId, userName, amount, method, account, status: 'pending', requestedAt: firebase.database.ServerValue.TIMESTAMP };
+
+        db.ref('withdrawals').push(requestData)
+            .then(() => db.ref(`users/${userId}/points`).set(newPoints))
+            .then(() => {
+                tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert('Your request has been submitted successfully!');
+                const message = `Withdrawal Request:\nUser: ${userName}\nAmount: ${amount}\nMethod: ${method}\nAccount: ${account}`;
+                promptForWhatsAppNotification(message, appSettings.adminWhatsappGroupUrl);
+            })
+            .catch(error => tg.showAlert('An error occurred.'));
+    });
+
+    window.handlePurchase = (itemType) => {
+        const itemRoot = itemType.replace(/s$/, '');
+        const link = document.getElementById(`shop-${itemRoot}-link`).value;
+        const quantity = parseInt(document.getElementById(`shop-${itemRoot}-quantity`).value, 10);
+        
+        if (!link || !quantity || quantity <= 0) {
+            tg.showAlert('Please provide a valid link and quantity.'); return;
+        }
+        const cost = quantity * SHOP_PRICES[itemType];
+        if ((currentUser.points || 0) < cost) {
+            tg.showAlert(`You need ${cost} points.`); return;
+        }
+
+        const newPoints = (currentUser.points || 0) - cost;
+        const purchaseData = { userId, userName, itemType, quantity, cost, link, purchasedAt: firebase.database.ServerValue.TIMESTAMP };
+        
+        db.ref('purchases').push(purchaseData)
+            .then(() => db.ref(`users/${userId}/points`).set(newPoints))
+            .then(() => {
+                tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert(`Purchase successful!`);
+                const message = `Service Purchase:\nUser: ${userName}\nItem: ${quantity} ${itemType}\nLink: ${link}`;
+                promptForWhatsAppNotification(message, appSettings.adminWhatsappGroupUrl);
+            })
+            .catch(error => tg.showAlert('An error occurred.'));
+    };
+    
+    function initializeApp() {
+        db.ref('settings').on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                appSettings = snapshot.val();
+                
+                const appTitleEl = document.querySelector('.top-header .title');
+                if (appTitleEl && appSettings.appName) {
+                    appTitleEl.textContent = appSettings.appName;
+                    document.title = appSettings.appName.replace(/💸/g, '').trim();
+                }
+
+                document.getElementById('min-withdraw').textContent = appSettings.minWithdraw || '...';
+                
+                const withdrawCard = document.getElementById('withdraw-card');
+                const disabledCard = document.getElementById('withdraw-disabled-card');
+                const methodSelect = document.getElementById('withdraw-method');
+                methodSelect.innerHTML = '';
+
+                if (appSettings.isWithdrawEnabled && appSettings.withdrawalMethods) {
+                    withdrawCard?.classList.remove('hidden');
+                    disabledCard?.classList.add('hidden');
+                    Object.values(appSettings.withdrawalMethods).forEach(method => {
+                        if (method.enabled) {
+                            const option = document.createElement('option');
+                            option.value = method.name;
+                            option.textContent = method.name;
+                            methodSelect.appendChild(option);
+                        }
+                    });
+                } else {
+                    withdrawCard?.classList.add('hidden');
+                    disabledCard?.classList.remove('hidden');
+                }
+            }
+        });
+
+        db.ref(`users/${userId}`).on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                updateUI(snapshot.val());
+            } else {
+                const referralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                const newUser = { id: userId, name: userName, points: 0, referralCode, stats: {}, createdAt: new Date().toISOString() };
+                db.ref(`users/${userId}`).set(newUser).then(() => updateUI(newUser));
+            }
+        });
+
+        document.body.className = localStorage.getItem('theme') || 'light';
+        navigate('home-view');
+    }
+    
+    initializeApp();
+});
+</script>
+</body>
+</html>

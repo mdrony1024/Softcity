@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #1c1e21; }
+        .container { max-width: 1200px; margin: auto; }
+        #login-view, #admin-view { display: none; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
+        h1, h2 { color: #1c1e21; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: middle; word-break: break-all; }
+        th { background-color: #f5f6f7; }
+        .btn { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .btn-approve { background-color: #42b72a; color: white; }
+        .btn-reject { background-color: #fa3e3e; color: white; }
+        .btn-edit { background-color: #1877f2; color: white; }
+        .btn-save { background-color: #f5a623; color: white; }
+        input[type="text"], input[type="password"], input[type="number"], select, textarea { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; }
+        .actions-cell { display: flex; gap: 5px; }
+        .setting-item { margin-bottom: 15px; }
+        .method-item { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Login View -->
+        <div id="login-view" style="display: block; max-width: 400px; margin: 100px auto;">
+            <div class="card">
+                <h1>Admin Login</h1>
+                <input type="text" id="username-input" placeholder="Username">
+                <input type="password" id="password-input" placeholder="Password">
+                <button id="login-btn" class="btn btn-edit" style="width: 100%;">Login</button>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard View -->
+        <div id="admin-view">
+            <h1>Admin Dashboard</h1>
+
+            <!-- Settings Section -->
+            <div class="card">
+                <h2>App Settings</h2>
+                <div class="setting-item">
+                    <label for="app-name-input">App Name</label>
+                    <input type="text" id="app-name-input" placeholder="Your App Name">
+                </div>
+                 <div class="setting-item">
+                    <label for="min-withdraw-input">Minimum Withdraw Points</label>
+                    <input type="number" id="min-withdraw-input" placeholder="e.g., 10000">
+                </div>
+                <div class="setting-item">
+                    <label>Withdrawals Enabled:</label>
+                    <select id="withdraw-enabled-select">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                <hr>
+                <h3>Withdrawal Methods</h3>
+                <div id="withdrawal-methods-container"></div>
+                <button id="save-settings-btn" class="btn btn-save">Save All Settings</button>
+            </div>
+
+            <!-- Notice Section -->
+            <div class="card">
+                <h2>Send Notice to All Users</h2>
+                <p style="font-size: 12px; color: #666;">Note: This will add a notice to every user's data in Firebase. Your app needs to be coded to display this notice.</p>
+                <textarea id="notice-input" rows="4" placeholder="Enter your notice here..."></textarea>
+                <button id="send-notice-btn" class="btn btn-edit">Send Notice</button>
+            </div>
+
+            <!-- Users Section -->
+            <div class="card">
+                <h2>Manage Users</h2>
+                <input type="text" id="search-user-input" placeholder="Search by User ID...">
+                <table id="users-table">
+                    <thead><tr><th>User ID</th><th>Name</th><th>Points</th><th>Actions</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Withdrawals Section -->
+            <div class="card">
+                <h2>Pending Withdrawals</h2>
+                <table id="withdrawals-table">
+                    <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Actions</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVNsMeB1jzOcIqAJjryUYmipT_SKrJi9k",
+            authDomain: "giveawaybd.firebaseapp.com",
+            databaseURL: "https://giveawaybd-default-rtdb.firebaseio.com",
+            projectId: "giveawaybd",
+            storageBucket: "giveawaybd.firebasestorage.app",
+            messagingSenderId: "333105621906",
+            appId: "1:333105621906:web:4e6e91514e85ff2f1eef4b",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const loginView = document.getElementById('login-view');
+        const adminView = document.getElementById('admin-view');
+        const loginBtn = document.getElementById('login-btn');
+        const usernameInput = document.getElementById('username-input');
+        const passwordInput = document.getElementById('password-input');
+        
+        let currentSettings = {};
+
+        // --- Login Logic ---
+        loginBtn.addEventListener('click', () => {
+            db.ref('settings').once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    currentSettings = snapshot.val();
+                    if (usernameInput.value === currentSettings.adminUser && passwordInput.value === currentSettings.adminPass) {
+                        loginView.style.display = 'none';
+                        adminView.style.display = 'block';
+                        loadInitialData();
+                    } else {
+                        alert('Wrong username or password!');
+                    }
+                } else {
+                    alert('Admin settings not found in Firebase.');
+                }
+            });
+        });
+        
+        function loadInitialData() {
+            loadSettings();
+            loadWithdrawals();
+            loadUsers();
+        }
+
+        // --- Settings Logic ---
+        const appNameInput = document.getElementById('app-name-input');
+        const minWithdrawInput = document.getElementById('min-withdraw-input');
+        const withdrawEnabledSelect = document.getElementById('withdraw-enabled-select');
+        const methodsContainer = document.getElementById('withdrawal-methods-container');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+
+        function loadSettings() {
+             db.ref('settings').on('value', (snapshot) => {
+                currentSettings = snapshot.val();
+                if (currentSettings) {
+                    appNameInput.value = currentSettings.appName || '';
+                    minWithdrawInput.value = currentSettings.minWithdraw || 0;
+                    withdrawEnabledSelect.value = currentSettings.isWithdrawEnabled.toString();
+                    
+                    methodsContainer.innerHTML = '';
+                    if (currentSettings.withdrawalMethods) {
+                        for (const key in currentSettings.withdrawalMethods) {
+                            const method = currentSettings.withdrawalMethods[key];
+                            const methodHtml = `
+                                <div class="method-item" data-key="${key}">
+                                    <input type="text" class="method-name" value="${method.name}">
+                                    <select class="method-enabled">
+                                        <option value="true" ${method.enabled ? 'selected' : ''}>Enabled</option>
+                                        <option value="false" ${!method.enabled ? 'selected' : ''}>Disabled</option>
+                                    </select>
+                                </div>
+                            `;
+                            methodsContainer.innerHTML += methodHtml;
+                        }
+                    }
+                }
+            });
+        }
+        
+        saveSettingsBtn.addEventListener('click', () => {
+            const newSettings = {
+                ...currentSettings,
+                appName: appNameInput.value,
+                minWithdraw: parseInt(minWithdrawInput.value, 10),
+                isWithdrawEnabled: withdrawEnabledSelect.value === 'true',
+                withdrawalMethods: {}
+            };
+            document.querySelectorAll('.method-item').forEach(item => {
+                const key = item.dataset.key;
+                const name = item.querySelector('.method-name').value;
+                const enabled = item.querySelector('.method-enabled').value === 'true';
+                if(name) newSettings.withdrawalMethods[key] = { name, enabled };
+            });
+            db.ref('settings').set(newSettings)
+                .then(() => alert('Settings saved successfully!'));
+        });
+
+        // --- Notice Logic ---
+        const noticeInput = document.getElementById('notice-input');
+        const sendNoticeBtn = document.getElementById('send-notice-btn');
+        sendNoticeBtn.addEventListener('click', () => {
+            const noticeText = noticeInput.value;
+            if (!noticeText) {
+                alert("Please enter a notice.");
+                return;
+            }
+            if (confirm("Are you sure you want to send this notice to ALL users?")) {
+                db.ref('users').update({ notice: noticeText })
+                    .then(() => alert("Notice sent to all users successfully!"));
+            }
+        });
+
+        // --- Withdrawals Logic ---
+        function loadWithdrawals() {
+            db.ref('withdrawals').on('value', (snapshot) => {
+                const tableBody = document.querySelector("#withdrawals-table tbody");
+                tableBody.innerHTML = '';
+                if (snapshot.exists()) {
+                    snapshot.forEach(child => {
+                        const key = child.key;
+                        const data = child.val();
+                        tableBody.innerHTML += `
+                            <tr>
+                                <td>${data.userName} (${data.userId})</td>
+                                <td>${data.amount}</td>
+                                <td>${data.method}</td>
+                                <td>${data.account}</td>
+                                <td class="actions-cell">
+                                    <button class="btn btn-approve" onclick="handleWithdrawal('${key}', 'approve')">Approve</button>
+                                    <button class="btn btn-reject" onclick="handleWithdrawal('${key}', 'reject')">Reject</button>
+                                </td>
+                            </tr>`;
+                    });
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="5">No pending withdrawals.</td></tr>';
+                }
+            });
+        }
+        window.handleWithdrawal = (key, action) => {
+            const ref = db.ref(`withdrawals/${key}`);
+            ref.once('value').then(snapshot => {
+                const data = snapshot.val();
+                if (action === 'approve') {
+                    ref.remove().then(() => alert('Withdrawal approved.'));
+                } else if (action === 'reject') {
+                    db.ref(`users/${data.userId}/points`).transaction(points => (points || 0) + data.amount);
+                    ref.remove().then(() => alert('Withdrawal rejected, points returned.'));
+                }
+            });
+        };
+
+        // --- Users Logic ---
+        const searchUserInput = document.getElementById('search-user-input');
+        let allUsersData = {};
+        function loadUsers() {
+            db.ref('users').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    allUsersData = snapshot.val();
+                    renderUsers(allUsersData);
+                }
+            });
+        }
+        function renderUsers(users) {
+            const tableBody = document.querySelector("#users-table tbody");
+            tableBody.innerHTML = '';
+            for(const userId in users) {
+                const data = users[userId];
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${userId}</td>
+                        <td>${data.name}</td>
+                        <td>${data.points || 0}</td>
+                        <td class="actions-cell">
+                            <button class="btn btn-edit" onclick="editPoints('${userId}', ${data.points || 0})">Edit Points</button>
+                        </td>
+                    </tr>`;
+            }
+        }
+        searchUserInput.addEventListener('keyup', () => {
+            const searchTerm = searchUserInput.value.toLowerCase();
+            if(!searchTerm) {
+                renderUsers(allUsersData);
+                return;
+            }
+            const filteredUsers = {};
+            for(const userId in allUsersData) {
+                if(userId.includes(searchTerm)) {
+                    filteredUsers[userId] = allUsersData[userId];
+                }
+            }
+            renderUsers(filteredUsers);
+        });
+        window.editPoints = (userId, currentPoints) => {
+            const newPoints = prompt(`Enter new point amount for user ${userId}:`, currentPoints);
+            if (newPoints !== null && !isNaN(newPoints)) {
+                db.ref(`users/${userId}/points`).set(parseInt(newPoints, 10))
+                    .then(() => alert('Points updated!'));
+            }
+        };
+
+    </script>
+</body>
+</html>```
+
+### এই চূড়ান্ত কোডে কী কী আছে?
+
+*   **Firebase থেকে লগইন:** আপনার সেট করা `adminUser` এবং `adminPass` দিয়ে লগইন করার ব্যবস্থা।
+*   **পূর্ণাঙ্গ সেটিংস ম্যানেজমেন্ট:** অ্যাপের নাম, মিনিমাম উইথড্র, উইথড্র চালু/বন্ধ করা, এবং প্রতিটি উইথড্র পদ্ধতির নাম ও সেটি চালু থাকবে কিনা তা নিয়ন্ত্রণ করার সুবিধা।
+*   **ব্যবহারকারী ম্যানেজমেন্ট:** সব ব্যবহারকারীর তালিকা দেখা, User ID দিয়ে খোঁজা এবং তাদের পয়েন্ট পরিবর্তন (যোগ/বিয়োগ) করার সুবিধা।
+*   **উইথড্র ম্যানেজমেন্ট:** সব পেন্ডিং উইথড্র রিকোয়েস্টের তালিকা দেখা এবং সেগুলোকে **"Approve"** বা **"Reject"** করার সুবিধা। Reject করলে পয়েন্ট স্বয়ংক্রিয়ভাবে ব্যবহারকারীর অ্যাকাউন্টে ফেরত চলে যাবে।
+*   **নোটিশ পাঠানোর সুবিধা:** সব ব্যবহারকারীকে একসাথে নোটিশ পাঠানোর ব্যবস্থা। **(গুরুত্বপূর্ণ: এই নোটিশটি দেখানোর জন্য আপনাকে আপনার মূল `ai_studio_code (16).html` ফাইলে ትንሽ কোড যোগ করতে হবে।)**
+
+এই একটি ফাইলই আপনার অ্যাডমিন প্যানেলের সব চাহিদা পূরণ করবে।
