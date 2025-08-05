@@ -292,6 +292,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if(link) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}`);
     });
 
+    // --- Adsgram কোড এখানে যোগ করা হয়েছে ---
+    document.getElementById('watch-ad-btn').addEventListener('click', () => {
+        // Adsgram বিজ্ঞাপন দেখানোর জন্য এই ফাংশনটি কল করা হবে
+        // এখানে আপনার তৈরি করা অ্যাড ইউনিট আইডি দিন
+        Adsgram.showRewardAd('task-13457');
+    });
+    // --- Adsgram কোড শেষ ---
+
     document.getElementById('theme-toggle').addEventListener('click', () => {
         const newTheme = document.body.classList.contains('light') ? 'dark' : 'light';
         document.body.className = newTheme;
