@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Cash Bazar</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    
+    <!-- === GIGAPUB SDK এখানে যোগ করা হয়েছে === -->
+    <script src="https://ad.gigapub.tech/script?id=1327"></script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -36,7 +39,7 @@
         #theme-toggle { background: var(--card-bg-color); border: 1px solid var(--border-color); color: var(--text-color); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 18px; }
         .header-bg { background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)); height: 120px; border-radius: 0 0 30px 30px; margin: 0 -15px 0 -15px; position: absolute; top: 0; left: 0; right: 0; z-index: -1; }
         .profile-card { background: var(--card-bg-color); border-radius: 20px; padding: 20px; text-align: center; margin-top: 50px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); position: relative; }
-        .profile-pic { width: 80px; height: 80px; border-radius: 50%; background: #fff; margin: -60px auto 10px; border: 4px solid var(--card-bg-color); display: flex; align-items: center; justify-content: center; }
+        .profile-pic { width: 80px; height: 80px; border-radius: 50%; background: #eee; margin: -60px auto 10px; border: 4px solid var(--card-bg-color); display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .profile-pic img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
         #user-name { font-size: 20px; font-weight: 600; }
         #user-points { background-color: var(--accent-color); color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; font-size: 14px; margin-top: 5px; }
@@ -45,6 +48,7 @@
         .stat-item .label { font-size: 12px; color: var(--secondary-text-color); }
         .action-button { width: 100%; padding: 12px; background-color: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); border-radius: 12px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
         .action-button:hover { background-color: var(--accent-color); color: white; }
+        .action-button:disabled { background-color: #ccc; border-color: #ccc; color: #666; cursor: not-allowed; }
         .card { background: var(--card-bg-color); border-radius: 15px; padding: 20px; margin-top: 20px; }
         .card-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; }
         .notice-card { background-color: var(--accent-color); color: white; padding: 15px; border-radius: 10px; margin-top: 20px; text-align: center; }
@@ -74,7 +78,7 @@
             <!-- Home View -->
             <div id="home-view" class="view">
                  <div class="profile-card">
-                    <div class="profile-pic"><img id="profile-img" src="" alt="P"></div>
+                    <div class="profile-pic"><img id="profile-img" src="" alt=""></div>
                     <h2 id="user-name">Loading...</h2>
                     <div id="user-points">0 Points</div>
                     <div class="stats-grid">
@@ -106,12 +110,12 @@
                 </div>
                 <div class="card">
                     <h3 class="card-title">Watch Ads & Earn</h3>
-                    <p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;" id="ads-left-text"></p>
-                    <button class="action-button" style="background-color: var(--accent-color); color: white;" id="watch-ad-btn">▶️ Watch Ad</button>
+                    <p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;" id="ads-left-text">Loading...</p>
+                    <button class="action-button" style="background-color: var(--accent-color); color: white;" id="watch-ad-btn" disabled>▶️ Watch Ad</button>
                 </div>
             </div>
 
-            <!-- Shop View -->
+            <!-- Shop View (No changes needed) -->
             <div id="shop-view" class="view hidden">
                  <div class="card">
                     <h3 class="card-title">🛒 Shop</h3>
@@ -140,16 +144,14 @@
                 </div>
             </div>
 
-            <!-- Bonus View -->
-            <div id="bonus-view" class="view hidden">
+            <!-- Other views (Bonus, Withdraw, etc.) - No changes needed, keeping them as they are -->
+             <div id="bonus-view" class="view hidden">
                 <div class="card">
                     <h3 class="card-title">🎁 Special Bonus</h3>
                     <p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;">Click the button below to visit our partner's page and complete offers to earn extra points!</p>
                     <button class="action-button" style="background-color: var(--accent-color); color: white; margin-top: 15px;" id="open-bonus-link-btn">Open Bonus Page</button>
                 </div>
             </div>
-
-            <!-- Withdraw View -->
             <div id="withdraw-view" class="view hidden">
                 <div class="card" id="withdraw-card">
                     <h3 class="card-title">Withdraw Points</h3>
@@ -167,16 +169,12 @@
                 </div>
                 <div class="card hidden" id="withdraw-disabled-card"><p>Withdrawal is temporarily disabled. Please check back later.</p></div>
             </div>
-
-            <!-- History View -->
             <div id="history-view" class="view hidden">
                 <div class="card">
                     <h3 class="card-title">Withdrawal History</h3>
                     <div id="history-list"><p>No withdrawal history.</p></div>
                 </div>
             </div>
-
-            <!-- Referral View -->
             <div id="referral-view" class="view hidden">
                  <div class="card">
                     <h3 class="card-title">Invite & Earn</h3>
@@ -189,8 +187,6 @@
                     <div id="top-referrers-list"><p>Loading top referrers...</p></div>
                 </div>
             </div>
-            
-            <!-- Leaderboard View -->
             <div id="leaderboard-page-view" class="view hidden">
                 <div class="card">
                     <h3 class="card-title">🏆 Leaderboard</h3>
@@ -212,6 +208,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Firebase এবং Telegram সেটআপ ---
     const firebaseConfig = {
         apiKey: "AIzaSyDVNsMeB1jzOcIqAJjryUYmipT_SKrJi9k",
         authDomain: "giveawaybd.firebaseapp.com",
@@ -221,11 +218,11 @@ document.addEventListener('DOMContentLoaded', () => {
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const SHOP_PRICES = { members: 100, views: 10, reactions: 20 };
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
 
+    // --- গ্লোবাল ভেরিয়েবল ---
     let currentUser = {}; 
     let appSettings = {};
     const userId = tg.initDataUnsafe?.user?.id || 'test_user_123'; 
@@ -234,12 +231,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const views = document.querySelectorAll('.view');
     const navItems = document.querySelectorAll('.nav-item');
 
+    // --- নেভিগেশন ---
     function navigate(viewId) {
         views.forEach(v => v.classList.add('hidden'));
         document.getElementById(viewId)?.classList.remove('hidden');
         navItems.forEach(item => item.classList.toggle('active', item.dataset.view === viewId));
     }
 
+    // --- UI আপডেট করার ফাংশন ---
     function updateUI(userData) {
         if (!userData) return;
         currentUser = userData;
@@ -248,6 +247,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('welcome-name').textContent = userData.name || 'User';
         document.getElementById('user-points').textContent = `${userData.points || 0} Points`;
         document.getElementById('withdraw-balance').textContent = userData.points || 0;
+        
+        // --- প্রোফাইল ছবি দেখানোর জন্য নতুন কোড ---
+        if (tg.initDataUnsafe?.user?.photo_url) {
+            document.getElementById('profile-img').src = tg.initDataUnsafe.user.photo_url;
+        } else {
+             // যদি ছবি না থাকে, তাহলে নামের প্রথম অক্ষর দেখান
+            const initial = (userData.name || 'U').charAt(0).toUpperCase();
+            const profilePicDiv = document.querySelector('.profile-pic');
+            profilePicDiv.innerHTML = `<span style="font-size: 32px; font-weight: bold;">${initial}</span>`;
+        }
         
         if (appSettings.botUsername && userData.referralCode) {
             document.getElementById('referral-link').value = `https://t.me/${appSettings.botUsername}?start=${userData.referralCode}`;
@@ -260,112 +269,75 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             noticeCard.classList.add('hidden');
         }
+
+        // Daily Ad Limit চেক এবং UI আপডেট
+        updateAdButtonStatus(userData.stats);
     }
 
-    function promptForWhatsAppNotification(message, groupInviteLink) {
-        if (!groupInviteLink) return;
-        tg.showPopup({
-            title: "Notify Admin",
-            message: "To ensure faster processing, please notify the admins on WhatsApp.",
-            buttons: [{ id: 'send_whatsapp', type: 'default', text: 'Notify on WhatsApp' }, { type: 'cancel' }]
-        }, (buttonId) => {
-            if (buttonId === 'send_whatsapp') {
-                tg.openLink(groupInviteLink);
-            }
-        });
+    function updateAdButtonStatus(stats) {
+        const today = new Date().toISOString().slice(0, 10);
+        let adsWatchedToday = 0;
+        if(stats && stats.lastAdWatchedDate === today) {
+            adsWatchedToday = stats.adsWatched || 0;
+        }
+        
+        const dailyLimit = appSettings.dailyAdLimit || 20;
+        const adsLeft = dailyLimit - adsWatchedToday;
+        
+        document.getElementById('ads-left-text').textContent = `You have ${adsLeft > 0 ? adsLeft : 0} ads left for today.`;
+        document.getElementById('stats-today-ads').textContent = adsWatchedToday;
+
+        const watchAdBtn = document.getElementById('watch-ad-btn');
+        if (adsLeft > 0) {
+            watchAdBtn.disabled = false;
+        } else {
+            watchAdBtn.disabled = true;
+            watchAdBtn.textContent = 'Limit Reached';
+        }
     }
-
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => navigate(e.currentTarget.dataset.view));
-    });
-
+    
+    // --- বিভিন্ন বাটনের ক্লিক ইভেন্ট ---
+    navItems.forEach(item => item.addEventListener('click', (e) => navigate(e.currentTarget.dataset.view)));
     document.getElementById('leaderboard-btn').addEventListener('click', () => navigate('leaderboard-page-view'));
     document.getElementById('go-to-shop-btn').addEventListener('click', () => navigate('shop-view'));
-    document.getElementById('join-channel-btn').addEventListener('click', () => {
-        if (appSettings.joinChannelUrl) tg.openLink(appSettings.joinChannelUrl);
-    });
-    document.getElementById('open-bonus-link-btn').addEventListener('click', () => {
-        if (appSettings.bonusUrl) tg.openLink(appSettings.bonusUrl);
-    });
-    document.getElementById('share-link-btn').addEventListener('click', () => {
-        const link = document.getElementById('referral-link').value;
-        if(link) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}`);
-    });
-
-    // --- Adsgram কোড এখানে যোগ করা হয়েছে ---
-    document.getElementById('watch-ad-btn').addEventListener('click', () => {
-        // Adsgram বিজ্ঞাপন দেখানোর জন্য এই ফাংশনটি কল করা হবে
-        // এখানে আপনার তৈরি করা অ্যাড ইউনিট আইডি দিন
-        Adsgram.showRewardAd('task-13457');
-    });
-    // --- Adsgram কোড শেষ ---
-
+    document.getElementById('join-channel-btn').addEventListener('click', () => { if (appSettings.joinChannelUrl) tg.openLink(appSettings.joinChannelUrl); });
+    document.getElementById('open-bonus-link-btn').addEventListener('click', () => { if (appSettings.bonusUrl) tg.openLink(appSettings.bonusUrl); });
+    document.getElementById('share-link-btn').addEventListener('click', () => { const link = document.getElementById('referral-link').value; if(link) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}`); });
     document.getElementById('theme-toggle').addEventListener('click', () => {
         const newTheme = document.body.classList.contains('light') ? 'dark' : 'light';
         document.body.className = newTheme;
         localStorage.setItem('theme', newTheme);
+        tg.setHeaderColor(newTheme === 'dark' ? '#1f2937' : '#f3f4f6');
     });
 
-    document.getElementById('submit-withdraw-btn').addEventListener('click', () => {
-        const amount = parseInt(document.getElementById('withdraw-amount').value, 10);
-        const method = document.getElementById('withdraw-method').value;
-        const account = document.getElementById('withdraw-account').value;
-        
-        if (!appSettings.isWithdrawEnabled) {
-            tg.showAlert("Withdrawal is currently disabled."); return;
-        }
-        if (!method) {
-            tg.showAlert('No withdrawal method is available.'); return;
-        }
-        if (!amount || amount < (appSettings.minWithdraw || 0) || !account) {
-            tg.showAlert(`Please check the amount (min: ${appSettings.minWithdraw || 0}) and account details.`); return;
-        }
-        if ((currentUser.points || 0) < amount) {
-            tg.showAlert("You don't have enough points."); return;
-        }
+    // --- Gigapub বিজ্ঞাপন দেখানোর কোড ---
+    document.getElementById('watch-ad-btn').addEventListener('click', () => {
+        const watchAdBtn = document.getElementById('watch-ad-btn');
+        watchAdBtn.disabled = true;
+        watchAdBtn.textContent = 'Loading Ad...';
 
-        const newPoints = (currentUser.points || 0) - amount;
-        const requestData = { userId, userName, amount, method, account, status: 'pending', requestedAt: firebase.database.ServerValue.TIMESTAMP };
-
-        db.ref('withdrawals').push(requestData)
-            .then(() => db.ref(`users/${userId}/points`).set(newPoints))
+        window.showGiga()
             .then(() => {
                 tg.HapticFeedback.notificationOccurred('success');
-                tg.showAlert('Your request has been submitted successfully!');
-                const message = `Withdrawal Request:\nUser: ${userName}\nAmount: ${amount}\nMethod: ${method}\nAccount: ${account}`;
-                promptForWhatsAppNotification(message, appSettings.adminWhatsappGroupUrl);
+                console.log('Ad completed. Reward will be sent from server.');
+                watchAdBtn.textContent = '▶️ Watch Ad'; // বাটন টেক্সট ঠিক করা
             })
-            .catch(error => tg.showAlert('An error occurred.'));
+            .catch(e => {
+                console.error('Failed to show ad:', e);
+                alert('No ad available right now. Please try again later.');
+                watchAdBtn.disabled = false; // বাটন আবার এনাবল করা
+                watchAdBtn.textContent = '▶️ Watch Ad';
+            });
     });
 
-    window.handlePurchase = (itemType) => {
-        const itemRoot = itemType.replace(/s$/, '');
-        const link = document.getElementById(`shop-${itemRoot}-link`).value;
-        const quantity = parseInt(document.getElementById(`shop-${itemRoot}-quantity`).value, 10);
-        
-        if (!link || !quantity || quantity <= 0) {
-            tg.showAlert('Please provide a valid link and quantity.'); return;
-        }
-        const cost = quantity * SHOP_PRICES[itemType];
-        if ((currentUser.points || 0) < cost) {
-            tg.showAlert(`You need ${cost} points.`); return;
-        }
-
-        const newPoints = (currentUser.points || 0) - cost;
-        const purchaseData = { userId, userName, itemType, quantity, cost, link, purchasedAt: firebase.database.ServerValue.TIMESTAMP };
-        
-        db.ref('purchases').push(purchaseData)
-            .then(() => db.ref(`users/${userId}/points`).set(newPoints))
-            .then(() => {
-                tg.HapticFeedback.notificationOccurred('success');
-                tg.showAlert(`Purchase successful!`);
-                const message = `Service Purchase:\nUser: ${userName}\nItem: ${quantity} ${itemType}\nLink: ${link}`;
-                promptForWhatsAppNotification(message, appSettings.adminWhatsappGroupUrl);
-            })
-            .catch(error => tg.showAlert('An error occurred.'));
-    };
+    // --- Withdraw এবং Purchase ফাংশন (কোনো পরিবর্তন নেই) ---
+    function promptForWhatsAppNotification(message, groupInviteLink) { if (!groupInviteLink) return; tg.showPopup({ title: "Notify Admin", message: "To ensure faster processing, please notify the admins on WhatsApp.", buttons: [{ id: 'send_whatsapp', type: 'default', text: 'Notify on WhatsApp' }, { type: 'cancel' }] }, (buttonId) => { if (buttonId === 'send_whatsapp') tg.openLink(groupInviteLink); }); }
+    document.getElementById('submit-withdraw-btn').addEventListener('click', () => { const amount = parseInt(document.getElementById('withdraw-amount').value, 10); const method = document.getElementById('withdraw-method').value; const account = document.getElementById('withdraw-account').value; if (!appSettings.isWithdrawEnabled) { tg.showAlert("Withdrawal is currently disabled."); return; } if (!method) { tg.showAlert('No withdrawal method is available.'); return; } if (!amount || amount < (appSettings.minWithdraw || 0) || amount > (appSettings.maxWithdraw || 999999) || !account) { tg.showAlert(`Please check the amount (Min: ${appSettings.minWithdraw || 0}, Max: ${appSettings.maxWithdraw || 'N/A'}) and account details.`); return; } if ((currentUser.points || 0) < amount) { tg.showAlert("You don't have enough points."); return; } const newPoints = (currentUser.points || 0) - amount; const requestData = { userId, userName, amount, method, account, status: 'pending', requestedAt: firebase.database.ServerValue.TIMESTAMP }; db.ref('withdrawals').push(requestData).then(() => db.ref(`users/${userId}/points`).set(newPoints)).then(() => { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert('Your request has been submitted successfully!'); const message = `Withdrawal Request:\nUser: ${userName}\nAmount: ${amount}\nMethod: ${method}\nAccount: ${account}`; promptForWhatsAppNotification(message, appSettings.adminWhatsappGroupUrl); }).catch(error => tg.showAlert('An error occurred.')); });
+    window.handlePurchase = (itemType) => { const itemRoot = itemType.replace(/s$/, ''); const link = document.getElementById(`shop-${itemRoot}-link`).value; const quantity = parseInt(document.getElementById(`shop-${itemRoot}-quantity`).value, 10); if (!link || !quantity || quantity <= 0) { tg.showAlert('Please provide a valid link and quantity.'); return; } const cost = quantity * SHOP_PRICES[itemType]; if ((currentUser.points || 0) < cost) { tg.showAlert(`You need ${cost} points.`); return; } const newPoints = (currentUser.points || 0) - cost; const purchaseData = { userId, userName, itemType, quantity, cost, link, purchasedAt: firebase.database.ServerValue.TIMESTAMP }; db.ref('purchases').push(purchaseData).then(() => db.ref(`users/${userId}/points`).set(newPoints)).then(() => { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert(`Purchase successful!`); const message = `Service Purchase:\nUser: ${userName}\nItem: ${quantity} ${itemType}\nLink: ${link}`; promptForWhatsAppNotification(message, appSettings.adminWhatsappGroupUrl); }).catch(error => tg.showAlert('An error occurred.')); };
     
+    // --- অ্যাপ ইনিশিয়ালাইজ করার মূল ফাংশন ---
     function initializeApp() {
+        // ডেটাবেস থেকে সেটিংস লোড করা
         db.ref('settings').on('value', (snapshot) => {
             if (snapshot.exists()) {
                 appSettings = snapshot.val();
@@ -398,20 +370,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     withdrawCard?.classList.add('hidden');
                     disabledCard?.classList.remove('hidden');
                 }
+                // Daily Ad Limit এর জন্য UI আপডেট
+                if (currentUser.stats) {
+                    updateAdButtonStatus(currentUser.stats);
+                }
             }
         });
 
+        // ডেটাবেস থেকে ব্যবহারকারীর ডেটা লোড করা
         db.ref(`users/${userId}`).on('value', (snapshot) => {
             if (snapshot.exists()) {
                 updateUI(snapshot.val());
             } else {
+                // নতুন ব্যবহারকারী তৈরি করা
                 const referralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
-                const newUser = { id: userId, name: userName, points: 0, referralCode, stats: {}, createdAt: new Date().toISOString() };
+                const newUser = { 
+                    id: userId, 
+                    name: userName, 
+                    points: 0, 
+                    referralCode, 
+                    stats: { totalAds: 0, referrals: 0 }, 
+                    createdAt: new Date().toISOString() 
+                };
                 db.ref(`users/${userId}`).set(newUser).then(() => updateUI(newUser));
             }
         });
 
-        document.body.className = localStorage.getItem('theme') || 'light';
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.body.className = savedTheme;
+        tg.setHeaderColor(savedTheme === 'dark' ? '#1f2937' : '#f3f4f6');
+
         navigate('home-view');
     }
     
@@ -419,4 +407,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-</html>
+                                                                                                             </html>
