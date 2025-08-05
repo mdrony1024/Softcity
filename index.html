@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Cash Bazar</title>
+    <title>Softcity</title> <!-- App Name Updated -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- === GIGAPUB SDK এখানে যোগ করা হয়েছে === -->
+    <!-- === GIGAPUB SDK === -->
     <script src="https://ad.gigapub.tech/script?id=1327"></script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,7 +46,7 @@
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
         .stat-item .value { font-size: 18px; font-weight: 600; }
         .stat-item .label { font-size: 12px; color: var(--secondary-text-color); }
-        .action-button { width: 100%; padding: 12px; background-color: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); border-radius: 12px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .action-button { width: 100%; padding: 12px; background-color: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); border-radius: 12px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .action-button:hover { background-color: var(--accent-color); color: white; }
         .action-button:disabled { background-color: #ccc; border-color: #ccc; color: #666; cursor: not-allowed; }
         .card { background: var(--card-bg-color); border-radius: 15px; padding: 20px; margin-top: 20px; }
@@ -62,13 +62,27 @@
         .nav-item { cursor: pointer; text-align: center; color: var(--secondary-text-color); font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: color 0.2s; padding: 0 5px; }
         .nav-item.active { color: var(--accent-color); }
         .nav-item svg { width: 24px; height: 24px; }
+        
+        /* === ডেইলি বোনাসের জন্য নতুন CSS === */
+        .bonus-container { padding: 20px; background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end)); border-radius: 15px; color: white; }
+        .bonus-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
+        .day-card { background: rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 10px; text-align: center; transition: transform 0.2s; }
+        .day-card.active { border: 2px solid white; transform: scale(1.05); }
+        .day-card.claimed { background: rgba(130, 255, 130, 0.4); }
+        .day-card.locked { opacity: 0.6; }
+        .day-card .day { font-size: 12px; }
+        .day-card .icon { font-size: 24px; margin: 5px 0; }
+        .day-card .points { font-size: 16px; font-weight: bold; }
+        .bonus-progress-bar { width: 100%; background: rgba(255, 255, 255, 0.3); height: 8px; border-radius: 4px; margin-top: 20px; overflow: hidden; }
+        .bonus-progress { background: white; height: 100%; border-radius: 4px; width: 0%; transition: width 0.5s; }
+        #claim-bonus-btn { background-color: white; color: var(--accent-color); margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body class="light">
     
     <div class="header-bg"></div>
     <div class="top-header container">
-        <h1 class="title">Cash Bazar 💸</h1>
+        <h1 class="title">Softcity 💸</h1>
         <button id="theme-toggle">🌙</button>
     </div>
 
@@ -111,11 +125,15 @@
                 <div class="card">
                     <h3 class="card-title">Watch Ads & Earn</h3>
                     <p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;" id="ads-left-text">Loading...</p>
-                    <button class="action-button" style="background-color: var(--accent-color); color: white;" id="watch-ad-btn" disabled>▶️ Watch Ad</button>
+                    <!-- === নতুন আইকনসহ বাটন === -->
+                    <button class="action-button" style="background-color: var(--accent-color); color: white;" id="watch-ad-btn" disabled>
+                        <svg style="width:20px; height:20px;" viewBox="0 0 24 24"><path fill="currentColor" d="M22,10.45V13.55A1,1 0 0,1 21,14.55C20.84,14.55 20.68,14.5 20.53,14.43L18,13.35V16.5A1.5,1.5 0 0,1 16.5,18H3.5A1.5,1.5 0 0,1 2,16.5V7.5A1.5,1.5 0 0,1 3.5,6H16.5A1.5,1.5 0 0,1 18,7.5V10.65L20.53,9.57C20.83,9.44 21.17,9.5 21.39,9.73C21.5,9.84 21.56,10 21.56,10.15L22,10.45M10,10.5A1.5,1.5 0 0,0 8.5,12A1.5,1.5 0 0,0 10,13.5A1.5,1.5 0 0,0 11.5,12A1.5,1.5 0 0,0 10,10.5Z" /></svg>
+                        <span>Watch Ad</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Shop View (No changes needed) -->
+            <!-- Shop View -->
             <div id="shop-view" class="view hidden">
                  <div class="card">
                     <h3 class="card-title">🛒 Shop</h3>
@@ -144,14 +162,18 @@
                 </div>
             </div>
 
-            <!-- Other views (Bonus, Withdraw, etc.) - No changes needed, keeping them as they are -->
-             <div id="bonus-view" class="view hidden">
-                <div class="card">
-                    <h3 class="card-title">🎁 Special Bonus</h3>
-                    <p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;">Click the button below to visit our partner's page and complete offers to earn extra points!</p>
-                    <button class="action-button" style="background-color: var(--accent-color); color: white; margin-top: 15px;" id="open-bonus-link-btn">Open Bonus Page</button>
+            <!-- === নতুন বোনাস ভিউ === -->
+            <div id="bonus-view" class="view hidden">
+                <div class="card bonus-container">
+                    <h3 class="card-title" style="color:white; border:none; text-align:center;">Daily Check-in Bonus</h3>
+                    <p style="font-size: 14px; margin-top: -10px; text-align:center;">Claim your daily reward and keep your streak!</p>
+                    <div id="bonus-grid" class="bonus-grid"></div>
+                    <div class="bonus-progress-bar"><div id="bonus-progress" class="bonus-progress"></div></div>
+                    <button class="action-button" id="claim-bonus-btn" disabled>Claim Reward</button>
                 </div>
             </div>
+            
+            <!-- Withdraw, History, Referral, Leaderboard Views (কোনো পরিবর্তন নেই) -->
             <div id="withdraw-view" class="view hidden">
                 <div class="card" id="withdraw-card">
                     <h3 class="card-title">Withdraw Points</h3>
@@ -248,14 +270,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('user-points').textContent = `${userData.points || 0} Points`;
         document.getElementById('withdraw-balance').textContent = userData.points || 0;
         
-        // --- প্রোফাইল ছবি দেখানোর জন্য নতুন কোড ---
         if (tg.initDataUnsafe?.user?.photo_url) {
             document.getElementById('profile-img').src = tg.initDataUnsafe.user.photo_url;
         } else {
-             // যদি ছবি না থাকে, তাহলে নামের প্রথম অক্ষর দেখান
             const initial = (userData.name || 'U').charAt(0).toUpperCase();
-            const profilePicDiv = document.querySelector('.profile-pic');
-            profilePicDiv.innerHTML = `<span style="font-size: 32px; font-weight: bold;">${initial}</span>`;
+            document.querySelector('.profile-pic').innerHTML = `<span style="font-size: 32px; font-weight: bold;">${initial}</span>`;
         }
         
         if (appSettings.botUsername && userData.referralCode) {
@@ -270,8 +289,8 @@ document.addEventListener('DOMContentLoaded', () => {
             noticeCard.classList.add('hidden');
         }
 
-        // Daily Ad Limit চেক এবং UI আপডেট
         updateAdButtonStatus(userData.stats);
+        renderDailyBonus(userData.bonus); // ডেইলি বোনাস UI আপডেট
     }
 
     function updateAdButtonStatus(stats) {
@@ -290,9 +309,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const watchAdBtn = document.getElementById('watch-ad-btn');
         if (adsLeft > 0) {
             watchAdBtn.disabled = false;
+            watchAdBtn.querySelector('span').textContent = 'Watch Ad';
         } else {
             watchAdBtn.disabled = true;
-            watchAdBtn.textContent = 'Limit Reached';
+            watchAdBtn.querySelector('span').textContent = 'Limit Reached';
         }
     }
     
@@ -301,7 +321,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('leaderboard-btn').addEventListener('click', () => navigate('leaderboard-page-view'));
     document.getElementById('go-to-shop-btn').addEventListener('click', () => navigate('shop-view'));
     document.getElementById('join-channel-btn').addEventListener('click', () => { if (appSettings.joinChannelUrl) tg.openLink(appSettings.joinChannelUrl); });
-    document.getElementById('open-bonus-link-btn').addEventListener('click', () => { if (appSettings.bonusUrl) tg.openLink(appSettings.bonusUrl); });
     document.getElementById('share-link-btn').addEventListener('click', () => { const link = document.getElementById('referral-link').value; if(link) tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}`); });
     document.getElementById('theme-toggle').addEventListener('click', () => {
         const newTheme = document.body.classList.contains('light') ? 'dark' : 'light';
@@ -310,43 +329,144 @@ document.addEventListener('DOMContentLoaded', () => {
         tg.setHeaderColor(newTheme === 'dark' ? '#1f2937' : '#f3f4f6');
     });
 
-    // --- Gigapub বিজ্ঞাপন দেখানোর কোড ---
+    // --- Gigapub বিজ্ঞাপন ---
     document.getElementById('watch-ad-btn').addEventListener('click', () => {
         const watchAdBtn = document.getElementById('watch-ad-btn');
         watchAdBtn.disabled = true;
-        watchAdBtn.textContent = 'Loading Ad...';
+        watchAdBtn.querySelector('span').textContent = 'Loading Ad...';
 
         window.showGiga()
             .then(() => {
                 tg.HapticFeedback.notificationOccurred('success');
-                console.log('Ad completed. Reward will be sent from server.');
-                watchAdBtn.textContent = '▶️ Watch Ad'; // বাটন টেক্সট ঠিক করা
             })
             .catch(e => {
-                console.error('Failed to show ad:', e);
                 alert('No ad available right now. Please try again later.');
-                watchAdBtn.disabled = false; // বাটন আবার এনাবল করা
-                watchAdBtn.textContent = '▶️ Watch Ad';
+                watchAdBtn.disabled = false;
+                watchAdBtn.querySelector('span').textContent = 'Watch Ad';
             });
     });
 
-    // --- Withdraw এবং Purchase ফাংশন (কোনো পরিবর্তন নেই) ---
-    function promptForWhatsAppNotification(message, groupInviteLink) { if (!groupInviteLink) return; tg.showPopup({ title: "Notify Admin", message: "To ensure faster processing, please notify the admins on WhatsApp.", buttons: [{ id: 'send_whatsapp', type: 'default', text: 'Notify on WhatsApp' }, { type: 'cancel' }] }, (buttonId) => { if (buttonId === 'send_whatsapp') tg.openLink(groupInviteLink); }); }
-    document.getElementById('submit-withdraw-btn').addEventListener('click', () => { const amount = parseInt(document.getElementById('withdraw-amount').value, 10); const method = document.getElementById('withdraw-method').value; const account = document.getElementById('withdraw-account').value; if (!appSettings.isWithdrawEnabled) { tg.showAlert("Withdrawal is currently disabled."); return; } if (!method) { tg.showAlert('No withdrawal method is available.'); return; } if (!amount || amount < (appSettings.minWithdraw || 0) || amount > (appSettings.maxWithdraw || 999999) || !account) { tg.showAlert(`Please check the amount (Min: ${appSettings.minWithdraw || 0}, Max: ${appSettings.maxWithdraw || 'N/A'}) and account details.`); return; } if ((currentUser.points || 0) < amount) { tg.showAlert("You don't have enough points."); return; } const newPoints = (currentUser.points || 0) - amount; const requestData = { userId, userName, amount, method, account, status: 'pending', requestedAt: firebase.database.ServerValue.TIMESTAMP }; db.ref('withdrawals').push(requestData).then(() => db.ref(`users/${userId}/points`).set(newPoints)).then(() => { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert('Your request has been submitted successfully!'); const message = `Withdrawal Request:\nUser: ${userName}\nAmount: ${amount}\nMethod: ${method}\nAccount: ${account}`; promptForWhatsAppNotification(message, appSettings.adminWhatsappGroupUrl); }).catch(error => tg.showAlert('An error occurred.')); });
-    window.handlePurchase = (itemType) => { const itemRoot = itemType.replace(/s$/, ''); const link = document.getElementById(`shop-${itemRoot}-link`).value; const quantity = parseInt(document.getElementById(`shop-${itemRoot}-quantity`).value, 10); if (!link || !quantity || quantity <= 0) { tg.showAlert('Please provide a valid link and quantity.'); return; } const cost = quantity * SHOP_PRICES[itemType]; if ((currentUser.points || 0) < cost) { tg.showAlert(`You need ${cost} points.`); return; } const newPoints = (currentUser.points || 0) - cost; const purchaseData = { userId, userName, itemType, quantity, cost, link, purchasedAt: firebase.database.ServerValue.TIMESTAMP }; db.ref('purchases').push(purchaseData).then(() => db.ref(`users/${userId}/points`).set(newPoints)).then(() => { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert(`Purchase successful!`); const message = `Service Purchase:\nUser: ${userName}\nItem: ${quantity} ${itemType}\nLink: ${link}`; promptForWhatsAppNotification(message, appSettings.adminWhatsappGroupUrl); }).catch(error => tg.showAlert('An error occurred.')); };
+    // --- === শপ অনুমোদন প্রক্রিয়ার জন্য নতুন ফাংশন === ---
+    window.handlePurchase = (itemType) => {
+        const SHOP_PRICES = { members: 100, views: 10, reactions: 20 };
+        const itemRoot = itemType.replace(/s$/, '');
+        const link = document.getElementById(`shop-${itemRoot}-link`).value;
+        const quantity = parseInt(document.getElementById(`shop-${itemRoot}-quantity`).value, 10);
+        if (!link || !quantity || quantity <= 0) { tg.showAlert('Please provide a valid link and quantity.'); return; }
+        const cost = quantity * SHOP_PRICES[itemType];
+        if ((currentUser.points || 0) < cost) { tg.showAlert(`You need ${cost} points.`); return; }
+        
+        const newPoints = (currentUser.points || 0) - cost;
+        const purchaseData = { userId, userName, itemType, quantity, cost, link, status: 'pending', purchasedAt: firebase.database.ServerValue.TIMESTAMP };
+        
+        db.ref('purchases').push(purchaseData)
+            .then(() => db.ref(`users/${userId}/points`).set(newPoints))
+            .then(() => {
+                tg.showAlert(`Purchase request sent! It will be processed by an admin shortly.`);
+            })
+            .catch(error => tg.showAlert('An error occurred.'));
+    };
+
+    // --- === নতুন ডেইলি বোনাস ফাংশন === ---
+    const bonusGrid = document.getElementById('bonus-grid');
+    const bonusProgress = document.getElementById('bonus-progress');
+    const claimBonusBtn = document.getElementById('claim-bonus-btn');
+
+    function renderDailyBonus(bonusData = {}) {
+        const bonusPoints = appSettings.dailyBonusPoints || [];
+        if (bonusPoints.length === 0) return; // সেটিংস লোড না হলে কিছু না করা
+
+        bonusGrid.innerHTML = '';
+        const today = new Date().toISOString().slice(0, 10);
+        const streak = bonusData.streak || 0;
+        const lastClaimed = bonusData.lastClaimedDate || '';
+        
+        let canClaim = lastClaimed !== today;
+
+        for (let i = 0; i < 7; i++) {
+            const day = i + 1;
+            const points = bonusPoints[i] || 0;
+            let cardClass = 'day-card';
+            let icon = '🎁';
+
+            if (i < streak) { // Claimed days
+                cardClass += ' claimed';
+                icon = '✅';
+            } else if (i === streak && canClaim) { // Today's claimable
+                cardClass += ' active';
+                icon = '⭐';
+            } else { // Locked days
+                cardClass += ' locked';
+                icon = '🔒';
+            }
+            bonusGrid.innerHTML += `
+                <div class="${cardClass}">
+                    <div class="day">Day ${day}</div>
+                    <div class="icon">${icon}</div>
+                    <div class="points">${points}</div>
+                </div>`;
+        }
+        
+        bonusProgress.style.width = `${(streak / 7) * 100}%`;
+        
+        if (canClaim && streak < 7) {
+            claimBonusBtn.disabled = false;
+            claimBonusBtn.textContent = `Claim ${bonusPoints[streak]} Points`;
+        } else if (streak >= 7 && lastClaimed === today) {
+            claimBonusBtn.disabled = true;
+            claimBonusBtn.textContent = 'All Claimed! Come back tomorrow.';
+        } else {
+            claimBonusBtn.disabled = true;
+            claimBonusBtn.textContent = 'Wait For Next Day';
+        }
+    }
     
+    claimBonusBtn.addEventListener('click', () => {
+        claimBonusBtn.disabled = true;
+        const userBonusRef = db.ref(`users/${userId}/bonus`);
+        userBonusRef.once('value').then(snapshot => {
+            const bonusData = snapshot.val() || { streak: 0 };
+            const today = new Date().toISOString().slice(0, 10);
+
+            if (bonusData.lastClaimedDate !== today) {
+                // Streak logic: check if yesterday was the last claimed date
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const lastClaimedDate = new Date(bonusData.lastClaimedDate);
+                
+                let newStreak = 1; // Default to 1 if streak is broken
+                if(bonusData.lastClaimedDate && lastClaimedDate.toDateString() === yesterday.toDateString()) {
+                    newStreak = (bonusData.streak || 0) + 1;
+                }
+                
+                if (newStreak > 7) newStreak = 1; // Reset after day 7
+
+                const pointsToAdd = appSettings.dailyBonusPoints[newStreak - 1] || 0;
+
+                const updates = {};
+                updates[`users/${userId}/bonus/streak`] = newStreak;
+                updates[`users/${userId}/bonus/lastClaimedDate`] = today;
+                updates[`users/${userId}/points`] = firebase.database.ServerValue.increment(pointsToAdd);
+                
+                db.ref().update(updates).then(() => {
+                    tg.HapticFeedback.notificationOccurred('success');
+                });
+            }
+        });
+    });
+
+    // --- Withdraw ফাংশন (আগের মতোই) ---
+    document.getElementById('submit-withdraw-btn').addEventListener('click', () => { const amount = parseInt(document.getElementById('withdraw-amount').value, 10); const method = document.getElementById('withdraw-method').value; const account = document.getElementById('withdraw-account').value; if (!appSettings.isWithdrawEnabled) { tg.showAlert("Withdrawal is currently disabled."); return; } if (!method) { tg.showAlert('No withdrawal method is available.'); return; } if (!amount || amount < (appSettings.minWithdraw || 0) || amount > (appSettings.maxWithdraw || 999999) || !account) { tg.showAlert(`Please check the amount (Min: ${appSettings.minWithdraw || 0}, Max: ${appSettings.maxWithdraw || 'N/A'}) and account details.`); return; } if ((currentUser.points || 0) < amount) { tg.showAlert("You don't have enough points."); return; } const newPoints = (currentUser.points || 0) - amount; const requestData = { userId, userName, amount, method, account, status: 'pending', requestedAt: firebase.database.ServerValue.TIMESTAMP }; db.ref('withdrawals').push(requestData).then(() => db.ref(`users/${userId}/points`).set(newPoints)).then(() => { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert('Your request has been submitted successfully!'); }).catch(error => tg.showAlert('An error occurred.')); });
+
     // --- অ্যাপ ইনিশিয়ালাইজ করার মূল ফাংশন ---
     function initializeApp() {
-        // ডেটাবেস থেকে সেটিংস লোড করা
         db.ref('settings').on('value', (snapshot) => {
             if (snapshot.exists()) {
                 appSettings = snapshot.val();
                 
                 const appTitleEl = document.querySelector('.top-header .title');
-                if (appTitleEl && appSettings.appName) {
-                    appTitleEl.textContent = appSettings.appName;
-                    document.title = appSettings.appName.replace(/💸/g, '').trim();
-                }
+                appTitleEl.textContent = 'Softcity 💸';
+                document.title = 'Softcity';
 
                 document.getElementById('min-withdraw').textContent = appSettings.minWithdraw || '...';
                 
@@ -370,28 +490,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     withdrawCard?.classList.add('hidden');
                     disabledCard?.classList.remove('hidden');
                 }
-                // Daily Ad Limit এর জন্য UI আপডেট
-                if (currentUser.stats) {
+                
+                if (currentUser && currentUser.stats) {
                     updateAdButtonStatus(currentUser.stats);
+                }
+                if (currentUser && currentUser.bonus) {
+                    renderDailyBonus(currentUser.bonus);
                 }
             }
         });
 
-        // ডেটাবেস থেকে ব্যবহারকারীর ডেটা লোড করা
         db.ref(`users/${userId}`).on('value', (snapshot) => {
             if (snapshot.exists()) {
                 updateUI(snapshot.val());
             } else {
-                // নতুন ব্যবহারকারী তৈরি করা
                 const referralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
-                const newUser = { 
-                    id: userId, 
-                    name: userName, 
-                    points: 0, 
-                    referralCode, 
-                    stats: { totalAds: 0, referrals: 0 }, 
-                    createdAt: new Date().toISOString() 
-                };
+                const newUser = { id: userId, name: userName, points: 0, referralCode, stats: {}, bonus: { streak: 0 }, createdAt: new Date().toISOString() };
                 db.ref(`users/${userId}`).set(newUser).then(() => updateUI(newUser));
             }
         });
@@ -399,7 +513,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.body.className = savedTheme;
         tg.setHeaderColor(savedTheme === 'dark' ? '#1f2937' : '#f3f4f6');
-
         navigate('home-view');
     }
     
@@ -407,4 +520,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-                                                                                                             </html>
+                                                                                                                                                                                                 </html>
