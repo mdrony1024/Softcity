@@ -231,7 +231,7 @@
         <div class="nav-item" data-view="bonus-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2m-8-1a1 1 0 0 1 1-1 1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1M12 19a3 3 0 0 1-3-3h6a3 3 0 0 1-3 3z"/></svg>Bonus</div>
         <div class="nav-item" data-view="withdraw-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2m14 14V8H5v10zm-7-7a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-3-3 3 3 0 0 1 3-3z"/></svg>Withdraw</div>
         <div class="nav-item" data-view="history-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 0 1 7-7 7 7 0 0 1 7 7 7 7 0 0 1-7 7v2a9 9 0 0 0 9-9 9 9 0 0 0-9-9m-1 5v5l4.25 2.52.75-1.23-3.5-2.08V8z"/></svg>History</div>
-        <div class="nav-item" data-view="referral-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M16 11a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3m-8 0a5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5m0 8c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4m11.5-3.5a2.5 2.5 0 0 0-2.5-2.5 2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5m-2.5 4c-1.95 0-5.8 1-5.8 3v1.5h11.6V20c0-2-3.85-3-5.8-3z"/></svg>Referral</div>
+        <div class="nav-item" data-view="referral-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M16 11a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3m-8 0a5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5-5 5 5 0 0 1-5-5m0 8c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4m11.5-3.5a2.5 2.5 0 0 0-2.5-2.5 2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5m-2.5 4c-1.95 0-5.8 1-5.8 3v1.5h11.6V20c0-2-3.85-3-5.8-3z"/></svg>Referral</div>
     </nav>
 
 <script>
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Global Variables ---
     let currentUser = {}; 
     let appSettings = {};
-    const userId = tg.initDataUnsafe?.user?.id || 'test_user_123';
+    const userId = tg.initDataUnsafe?.user?.id || 'test_user_12345';
     const userName = tg.initDataUnsafe?.user?.first_name || 'Test User';
     
     const views = document.querySelectorAll('.view');
@@ -269,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         navItems.forEach(item => item.classList.toggle('active', item.dataset.view === viewId));
         
-        // Show/hide back button
         if (viewId === 'leaderboard-page-view') {
             tg.BackButton.show();
         } else {
@@ -339,7 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // --- CORRECTED SHOP RENDER FUNCTION ---
     function renderShopItems() {
         const container = document.getElementById('shop-items-container');
         if (!appSettings.shop || Object.keys(appSettings.shop).length === 0) {
@@ -404,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="points">${user.points || 0} Points</div>
                         </div>
                         <div class="leaderboard-refs">
-                            <svg fill="currentColor" style="width:16px; height:16px;" viewBox="0 0 24 24"><path d="M16 11a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3m-8 0a5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5m0 8c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4m11.5-3.5a2.5 2.5 0 0 0-2.5-2.5 2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5m-2.5 4c-1.95 0-5.8 1-5.8 3v1.5h11.6V20c0-2-3.85-3-5.8-3z"/></svg>
+                            <svg fill="currentColor" style="width:16px; height:16px;" viewBox="0 0 24 24"><path d="M16 11a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3m-8 0a5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5-5 5 5 0 0 1-5-5m0 8c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4m11.5-3.5a2.5 2.5 0 0 0-2.5-2.5 2.5 2.5 0 0 0-2.5 2.5 2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0 2.5-2.5m-2.5 4c-1.95 0-5.8 1-5.8 3v1.5h11.6V20c0-2-3.85-3-5.8-3z"/></svg>
                             <span>${referrals}</span>
                         </div>
                     </div>`;
@@ -444,7 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- CORRECTED PURCHASE HANDLER ---
     window.handlePurchase = (itemKey) => {
         const itemSettings = appSettings.shop?.[itemKey];
         if (!itemSettings) {
@@ -482,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- Event Listeners ---
+    // --- Event Listeners & Actions ---
     navItems.forEach(item => item.addEventListener('click', (e) => navigate(e.currentTarget.dataset.view)));
     document.getElementById('go-to-shop-btn').addEventListener('click', () => navigate('shop-view'));
     document.getElementById('join-channel-btn').addEventListener('click', () => { if (appSettings.joinChannelUrl) tg.openLink(appSettings.joinChannelUrl); });
@@ -496,13 +493,43 @@ document.addEventListener('DOMContentLoaded', () => {
         tg.setHeaderColor(newTheme === 'dark' ? '#1f2937' : '#f3f4f6');
     });
 
+    // --- IMPROVED: Watch Ad Button Logic ---
     document.getElementById('watch-ad-btn').addEventListener('click', () => {
         const watchAdBtn = document.getElementById('watch-ad-btn');
-        watchAdBtn.disabled = true; watchAdBtn.querySelector('span').textContent = 'Loading Ad...';
-        window.showGiga().catch(() => {
-            alert('No ad available right now. Please try again later.');
-            watchAdBtn.disabled = false; watchAdBtn.querySelector('span').textContent = 'Watch Ad';
-        });
+        watchAdBtn.disabled = true;
+        watchAdBtn.querySelector('span').textContent = 'Loading Ad...';
+
+        window.showGiga()
+            .then(() => {
+                // Ad successfully watched
+                tg.HapticFeedback.notificationOccurred('success');
+                const adReward = appSettings.adReward || 10;
+                
+                const userStatsRef = db.ref(`users/${userId}/stats`);
+                userStatsRef.transaction(stats => {
+                    if (!stats) stats = { totalAdsWatched: 0, adsWatchedToday: 0, referrals: 0 };
+                    const today = new Date().toISOString().slice(0, 10);
+                    stats.adsWatchedToday = (stats.lastAdWatchedDate === today) ? (stats.adsWatchedToday || 0) + 1 : 1;
+                    stats.lastAdWatchedDate = today;
+                    stats.totalAdsWatched = (stats.totalAdsWatched || 0) + 1;
+                    return stats;
+                });
+
+                db.ref(`users/${userId}/points`).set(firebase.database.ServerValue.increment(adReward));
+                giveReferralCommission(adReward); // Give commission to referrer
+                tg.showAlert(`Congratulations! You've earned ${adReward} points.`);
+            })
+            .catch(error => {
+                // Ad failed to load
+                console.error("Ad failed to load:", error);
+                tg.showAlert('No ad available right now. Please try again later.');
+            })
+            .finally(() => {
+                // This will run whether the ad succeeded or failed
+                db.ref(`users/${userId}/stats`).once('value', snapshot => {
+                    updateAdButtonStatus(snapshot.val());
+                });
+            });
     });
 
     document.getElementById('submit-withdraw-btn').addEventListener('click', () => {
@@ -580,6 +607,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // --- IMPROVED: Referral System Functions ---
+    function handleReferral(startParam) {
+        if (!startParam || !startParam.startsWith('REF')) return;
+
+        const referrerCode = startParam;
+        const usersRef = db.ref('users');
+
+        usersRef.orderByChild('referralCode').equalTo(referrerCode).limitToFirst(1).once('value', snapshot => {
+            if (snapshot.exists()) {
+                let referrerId;
+                snapshot.forEach(child => { referrerId = child.key; });
+                
+                if (referrerId && referrerId != userId) {
+                    db.ref(`users/${userId}/referredBy`).set(referrerId);
+                    db.ref(`users/${referrerId}/stats/referrals`).set(firebase.database.ServerValue.increment(1));
+                    console.log(`User ${userId} was successfully referred by ${referrerId}`);
+                }
+            }
+        });
+    }
+
+    function giveReferralCommission(earnedPoints) {
+        if (!currentUser.referredBy) return;
+
+        const referrerId = currentUser.referredBy;
+        const commissionRate = (appSettings.referralCommission || 10) / 100; // Default 10%
+        const commissionAmount = Math.floor(earnedPoints * commissionRate);
+
+        if (commissionAmount > 0) {
+            db.ref(`users/${referrerId}/points`).set(firebase.database.ServerValue.increment(commissionAmount));
+            console.log(`Gave ${commissionAmount} points commission to referrer ${referrerId}`);
+        }
+    }
+
     // --- App Initialization ---
     function initializeApp() {
         db.ref('settings').on('value', (snapshot) => {
@@ -610,21 +671,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     disabledCard.classList.remove('hidden');
                 }
                 
-                // --- TRIGGER SHOP RENDER ---
                 renderShopItems();
-                
-                if (currentUser && currentUser.stats) updateAdButtonStatus(currentUser.stats);
-                if (currentUser && currentUser.bonus) renderDailyBonus(currentUser.bonus);
+                if (currentUser.stats) updateAdButtonStatus(currentUser.stats);
+                if (currentUser.bonus) renderDailyBonus(currentUser.bonus);
             }
         });
 
-        db.ref(`users/${userId}`).on('value', (snapshot) => {
+        // --- IMPROVED: New User Creation Logic ---
+        db.ref(`users/${userId}`).once('value', (snapshot) => {
             if (snapshot.exists()) {
                 updateUI(snapshot.val());
+                 db.ref(`users/${userId}`).on('value', (snap) => updateUI(snap.val()));
             } else {
                 const referralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
-                const newUser = { id: userId, name: userName, points: 0, referralCode, stats: { totalAdsWatched: 0, adsWatchedToday: 0, referrals: 0 }, bonus: { streak: 0 }, createdAt: new Date().toISOString() };
-                db.ref(`users/${userId}`).set(newUser).then(() => updateUI(newUser));
+                const newUser = { 
+                    id: String(userId), 
+                    name: userName, 
+                    points: 0, 
+                    referralCode: referralCode, 
+                    stats: { totalAdsWatched: 0, adsWatchedToday: 0, referrals: 0 }, 
+                    bonus: { streak: 0 }, 
+                    createdAt: new Date().toISOString() 
+                };
+                
+                db.ref(`users/${userId}`).set(newUser).then(() => {
+                    const startParam = tg.initDataUnsafe?.start_param;
+                    if(startParam) handleReferral(startParam);
+                    db.ref(`users/${userId}`).on('value', (snap) => updateUI(snap.val()));
+                });
             }
         });
 
@@ -646,4 +720,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-                                                   </html>
+</html>
