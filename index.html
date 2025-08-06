@@ -208,6 +208,7 @@
                 </div>
                 <div class="card hidden" id="withdraw-disabled-card"><p>Withdrawal is temporarily disabled.</p></div>
             </div>
+
             <div id="history-view" class="view hidden" data-onshow="loadHistory">
                 <div class="card">
                     <h3 class="card-title">Transaction History</h3>
@@ -249,7 +250,10 @@
             </div>
             
             <div id="leaderboard-page-view" class="view hidden" data-onshow="loadLeaderboard">
-                 <!-- Leaderboard content will be loaded here -->
+                 <div class="card">
+                    <h3 class="card-title">🏆 Leaderboard</h3>
+                    <div id="leaderboard-list"><p>Loading leaderboard...</p></div>
+                </div>
             </div>
         </div>
     </div>
@@ -257,6 +261,7 @@
     <nav class="bottom-nav">
         <div class="nav-item active" data-view="home-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home</div>
         <div class="nav-item" data-view="tasks-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-2 .89-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 14H4V6h16zM6 10h4v4H6zm6 0h6v4h-6z"/></svg>Tasks</div>
+        <div class="nav-item" data-view="shop-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M17 18c-1.11 0-2 .89-2 2s.89 2 2 2 2-.89 2-2-.89-2-2-2zm-12 0c-1.11 0-2 .89-2 2s.89 2 2 2 2-.89 2-2-.89-2-2-2zm1 0h10V4H6v14zM5.21 2.77L4.27 2H2v2h2.21l3.58 7.59-1.35 2.44A2 2 0 0 0 8 16h9v-2H8.53l1.1-2H15.7l3.58-6.41L18.63 4H19V2h-3.45z"/></svg>Shop</div>
         <div class="nav-item" data-view="bonus-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .35.07.69.18 1H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2m-8-1a1 1 0 0 1 1-1 1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1M12 19a3 3 0 0 1-3-3h6a3 3 0 0 1-3 3z"/></svg>Bonus</div>
         <div class="nav-item" data-view="withdraw-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2m14 14V8H5v10zm-7-7a3 3 0 0 1 3 3 3 3 0 0 1-3 3 3 3 0 0 1-3-3 3 3 0 0 1 3-3z"/></svg>Withdraw</div>
         <div class="nav-item" data-view="history-view"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 0 1 7-7 7 7 0 0 1 7 7 7 7 0 0 1-7 7v2a9 9 0 0 0 9-9 9 9 0 0 0-9-9m-1 5v5l4.25 2.52.75-1.23-3.5-2.08V8z"/></svg>History</div>
@@ -305,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- UI Update Functions ---
     function updateUI(userData) {
-        if (!userData) return;
+        if (!userData || !userData.stats) return; 
         currentUser = userData;
         
         document.getElementById('user-name').textContent = userData.name || 'User';
@@ -320,8 +325,8 @@ document.addEventListener('DOMContentLoaded', () => {
             profilePicDiv.innerHTML = `<span class="profile-pic-initial">${(userData.name || 'U').charAt(0).toUpperCase()}</span>`;
         }
         
-        document.getElementById('stats-total-ads').textContent = userData.stats?.totalAdsWatched || 0;
-        document.getElementById('stats-referrals').textContent = userData.stats?.referrals || 0;
+        document.getElementById('stats-total-ads').textContent = userData.stats.totalAdsWatched || 0;
+        document.getElementById('stats-referrals').textContent = userData.stats.referrals || 0;
         
         if (appSettings.botUsername && userData.referralCode) {
             const referralLink = `https://t.me/${appSettings.botUsername}?start=${userData.referralCode}`;
@@ -358,11 +363,12 @@ document.addEventListener('DOMContentLoaded', () => {
         watchAdBtn.querySelector('span').textContent = adsLeft > 0 ? 'Watch Ad' : 'Limit Reached';
     }
     
-    function renderShopItems() { /* ... unchanged ... */ }
+    function renderShopItems() { /* Unchanged */ }
 
     // --- Data Loading Functions ---
-    window.loadLeaderboard = () => { /* ... unchanged ... */ };
+    window.loadLeaderboard = function() { /* Unchanged */ };
     
+    // --- IMPROVED: Unified Transaction History ---
     window.loadHistory = function() {
         const historyList = document.getElementById('history-list');
         historyList.innerHTML = '<p>Loading history...</p>';
@@ -394,27 +400,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     title = `Purchase: ${item.quantity} ${item.itemType}`;
                     details = `Cost: ${item.cost} Points`;
                 }
-
                 historyList.innerHTML += `<div class="history-item"><div class="history-item-header"><span>${title}</span><span class="${statusClass}">${item.status}</span></div><div class="history-item-details">${details} &bull; ${date}</div></div>`;
             });
-
         }).catch(err => {
             console.error("Error loading history:", err);
             historyList.innerHTML = '<p>Could not load history. Please try again.</p>';
         });
     };
 
+    // --- IMPROVED: Load and Display Referral List ---
     window.loadReferralsList = function() {
         const listEl = document.getElementById('referrals-list');
         listEl.innerHTML = '<p>Loading your referrals...</p>';
         
         db.ref('users').orderByChild('referredBy').equalTo(String(userId)).once('value', snapshot => {
+            userReferrals = [];
             if (!snapshot.exists()) {
                 listEl.innerHTML = '<p>You haven\'t referred anyone yet.</p>';
-                userReferrals = [];
                 return;
             }
-            userReferrals = [];
             snapshot.forEach(child => userReferrals.push(child.val()));
             renderReferrals(userReferrals);
         });
@@ -436,8 +440,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchTerm = e.target.value.toLowerCase();
         renderReferrals(userReferrals.filter(ref => (ref.name || '').toLowerCase().includes(searchTerm)));
     });
-
-    window.handlePurchase = (itemKey) => { /* ... unchanged ... */ };
 
     // --- Event Listeners & Actions ---
     navItems.forEach(item => item.addEventListener('click', (e) => navigate(e.currentTarget.dataset.view)));
@@ -461,12 +463,11 @@ document.addEventListener('DOMContentLoaded', () => {
         tg.setHeaderColor(document.body.classList.contains('dark') ? '#1f2937' : '#f3f4f6');
     });
 
-    document.getElementById('watch-ad-btn').addEventListener('click', () => { /* ... same as previous correct version ... */ });
-    document.getElementById('submit-withdraw-btn').addEventListener('click', () => { /* ... unchanged ... */ });
-    
-    // Daily Bonus Logic
-    function renderDailyBonus(bonusData = {}) { /* ... unchanged ... */ }
-    claimBonusBtn.addEventListener('click', () => { /* ... unchanged ... */ });
+    document.getElementById('watch-ad-btn').addEventListener('click', () => { /* Unchanged */ });
+    document.getElementById('submit-withdraw-btn').addEventListener('click', () => { /* Unchanged */ });
+    window.handlePurchase = (itemKey) => { /* Unchanged */ };
+    function renderDailyBonus(bonusData = {}) { /* Unchanged */ }
+    document.getElementById('claim-bonus-btn').addEventListener('click', () => { /* Unchanged */ });
 
     // --- Referral System Functions ---
     function handleReferral(startParam) {
