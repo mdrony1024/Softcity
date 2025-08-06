@@ -1,37 +1,41 @@
-// File: /api/send-notification.js
+// --- send-notification.js ---
 
-export default async function handler(request, response) {
-    // --- নিচের দুটি জায়গায় আপনার নিজের টোকেন ও চ্যাট আইডি দিন ---
-    const BOT_TOKEN = "8415145631:AAGikGq-EqKG_nkG6eGuTGAf8FpE3LOMOVU";
-    const ADMIN_CHAT_ID = "5761590224";
+// আপনার আসল বট টোকেন এবং অ্যাডমিনের চ্যাট আইডি এখানে বসান
+const TELEGRAM_BOT_TOKEN = '8415145631:AAGikGq-EqKG_nkG6eGuTGAf8FpE3LOMOVU'; // আপনার বট টোকেনটি এখানে দিন
+const ADMIN_CHAT_ID = '5761590224'; // আপনার অ্যাডমিন চ্যাট আইডি এখানে দিন
 
-    if (request.method !== 'POST') {
-        return response.status(405).send({ message: 'Only POST requests allowed' });
+/**
+ * টেলিগ্রাম বটে একটি বার্তা পাঠায়।
+ * @param {string} message - যে বার্তাটি পাঠাতে চান।
+ * @returns {Promise<void>}
+ */
+async function sendTelegramNotification(message) {
+    // টোকেন বা চ্যাট আইডি না থাকলে ফাংশনটি কাজ করবে না
+    if (!TELEGRAM_BOT_TOKEN || !ADMIN_CHAT_ID) {
+        console.error('Telegram Bot Token or Admin Chat ID is not configured.');
+        return;
     }
+
+    // বার্তাটিকে URL-এ ব্যবহারের জন্য এনকোড করা হচ্ছে
+    const encodedMessage = encodeURIComponent(message);
+    
+    // টেলিগ্রাম বট এপিআই-এর URL তৈরি করা
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${ADMIN_CHAT_ID}&text=${encodedMessage}&parse_mode=Markdown`;
 
     try {
-        const { message } = request.body;
+        // fetch API ব্যবহার করে টেলিগ্রাম সার্ভারে একটি GET রিকোয়েস্ট পাঠানো হচ্ছে
+        const response = await fetch(url);
+        const data = await response.json();
 
-        if (!message) {
-            return response.status(400).send({ message: 'Message text is required' });
+        if (data.ok) {
+            console.log('Telegram notification sent successfully!');
+        } else {
+            console.error('Failed to send Telegram notification:', data.description);
         }
-
-        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-        
-        await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: ADMIN_CHAT_ID,
-                text: message,
-                parse_mode: 'HTML',
-            }),
-        });
-
-        response.status(200).send({ message: 'Notification sent successfully!' });
-
     } catch (error) {
-        console.error("Error sending notification:", error);
-        response.status(500).send({ message: 'Failed to send notification' });
+        console.error('Error sending Telegram notification:', error);
     }
 }
+
+// এই ফাংশনটিকে অন্য ফাইল থেকে ব্যবহার করার জন্য window অবজেক্টে যুক্ত করা হলো
+window.sendNotification = sendTelegramNotification;
