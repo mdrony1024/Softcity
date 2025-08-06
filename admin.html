@@ -7,37 +7,40 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f2f5; color: #1c1e21; display: flex; }
-        .sidebar { width: 220px; background: #fff; height: 100vh; position: fixed; box-shadow: 2px 0 5px rgba(0,0,0,0.1); padding-top: 20px; }
-        .sidebar h2 { text-align: center; color: #1c1e21; margin-bottom: 30px; }
-        .sidebar ul { list-style: none; padding: 0; margin: 0; }
-        .sidebar ul li a { display: block; padding: 15px 20px; color: #333; text-decoration: none; font-weight: 500; border-left: 3px solid transparent; }
-        .sidebar ul li a.active, .sidebar ul li a:hover { background: #f0f2f5; color: #1877f2; border-left-color: #1877f2; }
-        .main-content { margin-left: 220px; padding: 20px; width: calc(100% - 220px); }
+        :root { --primary-color: #5856d6; --light-bg: #f0f2f5; --white: #fff; --dark-text: #1c1e21; --light-text: #666; --border-color: #ddd; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: var(--light-bg); color: var(--dark-text); display: flex; }
+        .sidebar { width: 240px; background: var(--white); height: 100vh; position: fixed; box-shadow: 2px 0 5px rgba(0,0,0,0.05); transition: width 0.3s; z-index: 100; }
+        .sidebar.collapsed { width: 80px; }
+        .sidebar-header { padding: 20px; text-align: center; }
+        .sidebar-header h2 { margin: 0; font-size: 24px; color: var(--primary-color); white-space: nowrap; }
+        .sidebar.collapsed .sidebar-header h2 { display: none; }
+        .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar-nav ul li a { display: flex; align-items: center; padding: 15px 20px; color: #333; text-decoration: none; font-weight: 500; white-space: nowrap; }
+        .sidebar-nav ul li a .icon { font-size: 22px; width: 40px; text-align: center; }
+        .sidebar-nav ul li a .title { transition: opacity 0.2s; }
+        .sidebar.collapsed .sidebar-nav ul li a .title { opacity: 0; display: none; }
+        .sidebar-nav ul li a.active, .sidebar-nav ul li a:hover { background: var(--light-bg); color: var(--primary-color); }
+        #sidebar-toggle { position: fixed; left: 220px; top: 15px; background: var(--white); border: 1px solid var(--border-color); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; z-index: 101; transition: left 0.3s; }
+        .sidebar.collapsed #sidebar-toggle { left: 60px; }
+        .main-content { margin-left: 240px; padding: 20px; width: calc(100% - 240px); transition: margin-left 0.3s, width 0.3s; }
+        .sidebar.collapsed ~ .main-content { margin-left: 80px; width: calc(100% - 80px); }
         .container { max-width: 1200px; margin: auto; }
         #login-view { display: block; max-width: 400px; margin: 100px auto; padding: 20px; }
         #admin-view { display: none; }
         .admin-page { display: none; animation: fadeIn 0.5s; }
         .admin-page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); }
-        h1, h2, h3 { color: #1c1e21; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-top: 0; }
+        .card { background: var(--white); padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
+        h1, h2, h3 { color: var(--dark-text); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-top: 0; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: middle; word-break: break-all; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; word-break: break-all; }
         th { background-color: #f5f6f7; }
-        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; transition: opacity 0.2s; }
-        .btn:hover { opacity: 0.9; }
-        .btn-approve { background-color: #42b72a; color: white; }
-        .btn-reject { background-color: #fa3e3e; color: white; }
-        .btn-edit { background-color: #1877f2; color: white; }
-        .btn-save { background-color: #f5a623; color: white; }
-        .btn-delete { background-color: #e02828; color: white; }
-        .btn-add { background-color: #36a420; color: white; margin-top: 10px; }
-        input[type="text"], input[type="password"], input[type="number"], select, textarea { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-        .actions-cell { display: flex; gap: 5px; flex-wrap: wrap;}
-        .setting-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .btn-approve { background-color: #42b72a; color: white; } .btn-reject { background-color: #fa3e3e; color: white; }
+        .btn-edit { background-color: #1877f2; color: white; } .btn-save { background-color: #f5a623; color: white; }
+        input[type="text"], input[type="password"], input[type="number"], select, textarea { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; }
+        .setting-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
         .setting-item { margin-bottom: 15px; }
-        .method-item { display: grid; grid-template-columns: 1fr 120px 80px; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; border: 1px solid #eee; border-radius: 6px; }
         .shop-item-settings { border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-top: 15px; }
     </style>
 </head>
@@ -53,30 +56,41 @@
     </div>
 
     <div id="admin-view">
-        <aside class="sidebar">
-            <h2>Softcity Admin</h2>
-            <ul>
-                <li><a href="#settings" class="nav-link active">App Settings</a></li>
-                <li><a href="#notice" class="nav-link">Notice</a></li>
-                <li><a href="#shop-orders" class="nav-link">Shop Orders</a></li>
-                <li><a href="#users" class="nav-link">Users</a></li>
-                <li><a href="#withdrawals" class="nav-link">Withdrawals</a></li>
-            </ul>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Softcity</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#settings" class="nav-link active"><span class="icon">⚙️</span><span class="title">App Settings</span></a></li>
+                    <li><a href="#shop-orders" class="nav-link"><span class="icon">🛒</span><span class="title">Shop Orders</span></a></li>
+                    <li><a href="#withdrawals" class="nav-link"><span class="icon">💸</span><span class="title">Withdrawals</span></a></li>
+                    <li><a href="#users" class="nav-link"><span class="icon">👥</span><span class="title">Users</span></a></li>
+                    <li><a href="#notice" class="nav-link"><span class="icon">📢</span><span class="title">Notice</span></a></li>
+                </ul>
+            </nav>
         </aside>
+        
+        <button id="sidebar-toggle">☰</button>
 
         <main class="main-content">
             <div class="container">
-                <!-- Settings Page -->
+                <!-- Pages will be shown here -->
                 <div id="settings" class="admin-page active">
                     <div class="card">
-                        <h2>App Settings</h2>
+                        <h2>General Settings</h2>
                         <div class="setting-grid">
                             <div class="setting-item"><label>App Name</label><input type="text" id="app-name-input"></div>
                             <div class="setting-item"><label>Bot Username (without @)</label><input type="text" id="bot-username-input"></div>
+                            <div class="setting-item"><label>Join Channel URL</label><input type="text" id="join-channel-url-input"></div>
+                            <div class="setting-item"><label>Admin WhatsApp Group URL</label><input type="text" id="whatsapp-url-input"></div>
+                        </div>
+                        <hr>
+                        <h3>Earning Settings</h3>
+                        <div class="setting-grid">
                             <div class="setting-item"><label>Points Per Ad</label><input type="number" id="points-per-ad-input"></div>
                             <div class="setting-item"><label>Daily Ad Limit</label><input type="number" id="daily-ad-limit-input"></div>
                             <div class="setting-item"><label>Referral Commission (%)</label><input type="number" id="referral-commission-input"></div>
-                            <div class="setting-item"><label>Join Channel URL</label><input type="text" id="join-channel-url-input"></div>
                         </div>
                         <hr>
                         <h3>Withdrawal Settings</h3>
@@ -84,7 +98,6 @@
                             <div class="setting-item"><label>Min Withdraw</label><input type="number" id="min-withdraw-input"></div>
                             <div class="setting-item"><label>Max Withdraw</label><input type="number" id="max-withdraw-input"></div>
                             <div class="setting-item"><label>Enabled</label><select id="withdraw-enabled-select"><option value="true">Yes</option><option value="false">No</option></select></div>
-                            <div class="setting-item"><label>Admin WhatsApp Group URL</label><input type="text" id="whatsapp-url-input"></div>
                         </div>
                         <h4>Withdrawal Methods</h4>
                         <div id="withdrawal-methods-container"></div>
@@ -100,17 +113,6 @@
                     </div>
                 </div>
 
-                <!-- Notice Page -->
-                <div id="notice" class="admin-page">
-                    <div class="card">
-                        <h2>Send Notice to All Users</h2>
-                        <textarea id="notice-input" rows="4" placeholder="Enter notice..."></textarea>
-                        <button id="send-notice-btn" class="btn btn-edit">Send Notice</button>
-                        <button id="remove-notice-btn" class="btn btn-reject">Remove Notice</button>
-                    </div>
-                </div>
-
-                <!-- Shop Orders Page -->
                 <div id="shop-orders" class="admin-page">
                     <div class="card">
                         <h2>Pending Shop Orders</h2>
@@ -121,7 +123,16 @@
                     </div>
                 </div>
                 
-                <!-- Users Page -->
+                <div id="withdrawals" class="admin-page">
+                    <div class="card">
+                        <h2>Pending Withdrawals</h2>
+                        <table id="withdrawals-table">
+                            <thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Actions</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
                 <div id="users" class="admin-page">
                      <div class="card">
                         <h2>Manage Users</h2>
@@ -132,15 +143,13 @@
                         </table>
                     </div>
                 </div>
-
-                <!-- Withdrawals Page -->
-                <div id="withdrawals" class="admin-page">
+                
+                <div id="notice" class="admin-page">
                     <div class="card">
-                        <h2>Pending Withdrawals</h2>
-                        <table id="withdrawals-table">
-                            <thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Actions</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
+                        <h2>Send Notice to All Users</h2>
+                        <textarea id="notice-input" rows="4" placeholder="Enter notice..."></textarea>
+                        <button id="send-notice-btn" class="btn btn-edit">Send Notice</button>
+                        <button id="remove-notice-btn" class="btn btn-reject">Remove Notice</button>
                     </div>
                 </div>
             </div>
@@ -148,13 +157,17 @@
     </div>
 
     <script>
-        // --- Firebase Config & Global Vars ---
+        // --- Firebase Config, Global Vars ---
         const firebaseConfig = { apiKey: "AIzaSyDVNsMeB1jzOcIqAJjryUYmipT_SKrJi9k", authDomain: "giveawaybd.firebaseapp.com", databaseURL: "https://giveawaybd-default-rtdb.firebaseio.com", projectId: "giveawaybd" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let currentSettings = {}, allUsersData = {};
         
-        // --- Navigation Logic ---
+        // --- Sidebar & Navigation Logic ---
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+
         const navLinks = document.querySelectorAll('.nav-link');
         const adminPages = document.querySelectorAll('.admin-page');
         navLinks.forEach(link => {
@@ -200,35 +213,51 @@
              db.ref('settings').on('value', (snapshot) => {
                 if (!snapshot.exists()) return;
                 currentSettings = snapshot.val();
-                
                 for(const key in settingsInputs) {
-                    if (key === 'isWithdrawEnabled') {
+                    if (settingsInputs[key].tagName === 'SELECT') {
                         settingsInputs[key].value = currentSettings[key] !== undefined ? currentSettings[key].toString() : 'true';
                     } else {
-                        settingsInputs[key].value = currentSettings[key] || '';
+                        settingsInputs[key].value = currentSettings[key] || (settingsInputs[key].type === 'number' ? 0 : '');
                     }
                 }
-                
-                // Load dynamic sections
                 renderWithdrawalMethods(currentSettings.withdrawalMethods);
                 renderDailyBonus(currentSettings.dailyBonusPoints);
                 renderShopItems(currentSettings.shopItems);
             });
         }
         
-        // Dynamic UI renderers
-        function renderWithdrawalMethods(methods) { /* ... same as before ... */ }
-        function addMethodUI(key, name = '', enabled = true) { /* ... same as before ... */ }
+        function renderWithdrawalMethods(methods) {
+            const container = document.getElementById('withdrawal-methods-container'); container.innerHTML = '';
+            const data = methods || {};
+            for (const key in data) addMethodUI(key, data[key].name, data[key].enabled);
+        }
+        function addMethodUI(key, name = '', enabled = true) {
+            const container = document.getElementById('withdrawal-methods-container');
+            const item = document.createElement('div');
+            item.className = 'method-item';
+            item.dataset.key = key;
+            item.innerHTML = `<input type="text" class="method-name" value="${name}" placeholder="Method Name">
+                <select class="method-enabled"><option value="true" ${enabled ? 'selected':''}>Enabled</option><option value="false" ${!enabled ? 'selected':''}>Disabled</option></select>
+                <button class="btn btn-delete">Delete</button>`;
+            item.querySelector('.btn-delete').onclick = () => item.remove();
+            container.appendChild(item);
+        }
         document.getElementById('add-method-btn').addEventListener('click', () => addMethodUI(`method_${Date.now()}`));
 
         function renderDailyBonus(points) {
             const container = document.getElementById('daily-bonus-container'); container.innerHTML = '';
-            const bonusPoints = points || [1,2,4,10,15,17,20];
+            const bonusPoints = points || [10,20,30,40,50,60,100];
             for (let i=0; i<7; i++) container.innerHTML += `<div class="setting-item"><label>Day ${i+1}</label><input type="number" class="daily-bonus-input" value="${bonusPoints[i] || 0}"></div>`;
         }
+
         function renderShopItems(items) {
             const container = document.getElementById('shop-items-container'); container.innerHTML = '';
-            const shopItems = items || { members: { name: 'Telegram Members', price: 100, min: 10, max: 1000 } };
+            const defaultItems = {
+                members: { name: 'Telegram Members', price: 100, min: 10, max: 1000 },
+                views: { name: 'Post Views', price: 10, min: 100, max: 10000 },
+                reactions: { name: 'Post Reactions', price: 20, min: 10, max: 500 }
+            };
+            const shopItems = items || defaultItems;
             for(const key in shopItems) {
                 const item = shopItems[key];
                 container.innerHTML += `<div class="shop-item-settings" data-key="${key}"><h4>${item.name}</h4><div class="setting-grid">
@@ -239,36 +268,36 @@
             }
         }
 
-        // Save settings button
         document.getElementById('save-settings-btn').addEventListener('click', () => {
             let updates = {};
-            for(const key in settingsInputs) {
-                updates[key] = (settingsInputs[key].type === 'number') ? parseInt(settingsInputs[key].value, 10) : (key === 'isWithdrawEnabled' ? (settingsInputs[key].value === 'true') : settingsInputs[key].value);
-            }
-            updates.withdrawalMethods = {}; /* ... same as before ... */
+            for(const key in settingsInputs) updates[key] = (settingsInputs[key].type === 'number') ? parseInt(settingsInputs[key].value, 10) : (key === 'isWithdrawEnabled' ? (settingsInputs[key].value === 'true') : settingsInputs[key].value);
+            updates.withdrawalMethods = {};
+            document.querySelectorAll('.method-item').forEach(item => {
+                const key = item.dataset.key;
+                const name = item.querySelector('.method-name').value.trim();
+                if(name) updates.withdrawalMethods[key] = { name: name, enabled: item.querySelector('.method-enabled').value === 'true' };
+            });
             updates.dailyBonusPoints = Array.from(document.querySelectorAll('.daily-bonus-input')).map(i => parseInt(i.value, 10));
             updates.shopItems = {};
             document.querySelectorAll('.shop-item-settings').forEach(item => {
                 const key = item.dataset.key;
-                updates.shopItems[key] = {
-                    name: item.querySelector('h4').textContent,
-                    price: parseInt(item.querySelector('.shop-price').value, 10),
-                    min: parseInt(item.querySelector('.shop-min').value, 10),
-                    max: parseInt(item.querySelector('.shop-max').value, 10),
-                };
+                updates.shopItems[key] = { name: item.querySelector('h4').textContent, price: parseInt(item.querySelector('.shop-price').value, 10), min: parseInt(item.querySelector('.shop-min').value, 10), max: parseInt(item.querySelector('.shop-max').value, 10) };
             });
-            db.ref('settings').update(updates).then(() => alert('Settings saved!'));
+            db.ref('settings').update(updates).then(() => alert('Settings saved successfully!'));
         });
 
         // --- Other Sections (Notice, Purchases, Withdrawals, Users) ---
-        // These are mostly the same, just attached to their respective page IDs
-        function loadPurchases() { /* ... same code as before ... */ }
-        window.handleShopOrder = (key, action) => { /* ... same code as before ... */ }
-        function loadWithdrawals() { /* ... same code as before ... */ }
-        window.handleWithdrawal = (key, action) => { /* ... same code as before ... */ }
-        function loadUsers() { /* ... same code as before ... */ }
-        window.editPoints = (userId, name) => { /* ... same code as before ... */ }
-        // Notice logic is the same...
+        function loadPurchases() { db.ref('purchases').orderByChild('status').equalTo('pending').on('value', snapshot => { const tbody = document.querySelector("#purchases-table tbody"); tbody.innerHTML = ''; if(snapshot.exists()){ snapshot.forEach(child => { const k = child.key, d = child.val(); tbody.innerHTML += `<tr><td>${new Date(d.purchasedAt).toLocaleString()}</td><td>${d.userName}(${d.userId})</td><td>${d.quantity} ${d.itemType}</td><td><a href="${d.link}" target="_blank">Link</a></td><td>${d.cost}</td><td><button class="btn btn-approve" onclick="handleShopOrder('${k}','approved')">Approve</button><button class="btn btn-reject" onclick="handleShopOrder('${k}','rejected')">Reject</button></td></tr>`; }); } else { tbody.innerHTML = '<tr><td colspan="6" align="center">No pending orders.</td></tr>'; } }); }
+        window.handleShopOrder = (key, action) => { const ref = db.ref(`purchases/${key}`); if (action === 'approved') { ref.update({ status: 'approved' }).then(() => alert('Order approved.')); } else { ref.once('value').then(s => { const d = s.val(); db.ref(`users/${d.userId}/points`).transaction(p => (p||0)+d.cost); ref.update({ status: 'rejected' }).then(() => alert('Order rejected, points returned.')); }); } };
+        function loadWithdrawals() { db.ref('withdrawals').orderByChild('status').equalTo('pending').on('value', snapshot => { const tbody = document.querySelector("#withdrawals-table tbody"); tbody.innerHTML = ''; if(snapshot.exists()){ snapshot.forEach(child => { const k = child.key, d = child.val(); tbody.innerHTML += `<tr><td>${new Date(d.requestedAt).toLocaleString()}</td><td>${d.userName}(${d.userId})</td><td>${d.amount}</td><td>${d.method}</td><td>${d.account}</td><td><button class="btn btn-approve" onclick="handleWithdrawal('${k}','approved')">Approve</button><button class="btn btn-reject" onclick="handleWithdrawal('${k}','rejected')">Reject</button></td></tr>`; }); } else { tbody.innerHTML = '<tr><td colspan="6" align="center">No pending withdrawals.</td></tr>'; } }); }
+        window.handleWithdrawal = (key, action) => { const ref = db.ref(`withdrawals/${key}`); if (action === 'approved') { ref.update({ status: 'approved' }).then(() => alert('Withdrawal approved.')); } else { ref.once('value').then(s => { const d = s.val(); db.ref(`users/${d.userId}/points`).transaction(p => (p||0)+d.amount); ref.update({ status: 'rejected' }).then(() => alert('Withdrawal rejected, points returned.')); }); } };
+        function loadUsers() { db.ref('users').on('value', snapshot => { if(snapshot.exists()){ allUsersData = snapshot.val(); renderUsers(allUsersData); } }); }
+        function renderUsers(users) { const tbody = document.querySelector("#users-table tbody"); tbody.innerHTML = ''; for(const uid in users) { const d = users[uid]; tbody.innerHTML += `<tr><td>${uid}</td><td>${d.name||'N/A'}</td><td>${d.points||0}</td><td><button class="btn btn-edit" onclick="editPoints('${uid}','${d.name||''}')">Edit Points</button></td></tr>`; } }
+        document.getElementById('search-user-input').addEventListener('keyup', (e) => { const term = e.target.value.toLowerCase(); if(!term) { renderUsers(allUsersData); return; } const filtered = {}; for(const uid in allUsersData) { const name = (allUsersData[uid].name||'').toLowerCase(); if(uid.includes(term) || name.includes(term)) filtered[uid] = allUsersData[uid]; } renderUsers(filtered); });
+        window.editPoints = (uid, name) => { const newPts = prompt(`New points for ${name} (${uid}):`, allUsersData[uid].points || 0); if(newPts !== null && !isNaN(newPts)) db.ref(`users/${uid}/points`).set(parseInt(newPts,10)); };
+        const noticeInput = document.getElementById('notice-input');
+        document.getElementById('send-notice-btn').addEventListener('click', () => { const text = noticeInput.value.trim(); if(text && confirm('Sure?')) { db.ref('users').once('value', s => { const u = {}; s.forEach(c => u[`${c.key}/notice`] = text); db.ref().update(u); }); } });
+        document.getElementById('remove-notice-btn').addEventListener('click', () => { if(confirm('Sure?')) { db.ref('users').once('value', s => { const u = {}; s.forEach(c => u[`${c.key}/notice`] = null); db.ref().update(u); }); } });
     </script>
 </body>
-</html>
+    </html>
