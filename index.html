@@ -114,19 +114,14 @@
                 <div class="card"><h3 class="card-title">Welcome, <span id="welcome-name">User</span>!</h3><p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;">Complete tasks, invite friends, and earn points.</p><button class="action-button" id="join-channel-btn">🚀 Join Channel</button></div>
             </div>
 
-            <!-- Tasks View -->
-            <div id="tasks-view" class="view hidden">
-                <div class="card"><h3 class="card-title">Promote Services</h3><p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;">আপনার ব্যালেন্স দিয়ে আপনার চ্যানেল প্রোমোট করুন।</p><button class="action-button" id="go-to-shop-btn" style="margin-top: 15px;">🚀 Promote Now</button></div>
-                <div class="card"><h3 class="card-title">Watch Ads & Earn</h3><p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;" id="ads-left-text">Loading...</p><button class="action-button" id="watch-ad-btn" disabled><svg style="width:20px; height:20px;" viewBox="0 0 24 24"><path fill="currentColor" d="M22,10.45V13.55A1,1 0 0,1 21,14.55C20.84,14.55 20.68,14.5 20.53,14.43L18,13.35V16.5A1.5,1.5 0 0,1 16.5,18H3.5A1.5,1.5 0 0,1 2,16.5V7.5A1.5,1.5 0 0,1 3.5,6H16.5A1.5,1.5 0 0,1 18,7.5V10.65L20.53,9.57C20.83,9.44 21.17,9.5 21.39,9.73C21.5,9.84 21.56,10 21.56,10.15L22,10.45M10,10.5A1.5,1.5 0 0,0 8.5,12A1.5,1.5 0 0,0 10,13.5A1.5,1.5 0 0,0 11.5,12A1.5,1.5 0 0,0 10,10.5Z" /></svg><span>Watch Ad</span></button></div>
-            </div>
-
             <!-- Other Views -->
-            <div id="shop-view" class="view hidden"><div class="card"><h3 class="card-title">🛒 Shop</h3><div id="shop-items-container"><p>Loading shop items...</p></div></div></div>
+            <div id="tasks-view" class="view hidden"></div>
+            <div id="shop-view" class="view hidden"></div>
             <div id="bonus-view" class="view hidden"></div>
-            <div id="withdraw-view" class="view hidden"><div class="card" id="withdraw-card"><h3 class="card-title">Withdraw Points</h3><div class="form-group"><label>Balance: <span id="withdraw-balance">0</span> points</label><label style="font-size:12px; color:var(--secondary-text-color)">Min: <span id="min-withdraw">...</span></label><input type="number" id="withdraw-amount" placeholder="e.g., 20000"></div><div class="form-group"><label for="withdraw-method">Method</label><select id="withdraw-method"></select></div><div class="form-group"><label for="withdraw-account">Account Details</label><input type="text" id="withdraw-account" placeholder="Your account number or ID"></div><button class="action-button" id="submit-withdraw-btn">Submit Request</button></div><div class="card hidden" id="withdraw-disabled-card"><p>Withdrawal is temporarily disabled.</p></div></div>
-            <div id="history-view" class="view hidden"><div class="card"><h3 class="card-title">Transaction History</h3><div id="history-list"><p>Loading history...</p></div></div></div>
+            <div id="withdraw-view" class="view hidden"></div>
+            <div id="history-view" class="view hidden"></div>
             <div id="referral-view" class="view hidden"></div>
-            <div id="leaderboard-page-view" class="view hidden"><div class="card"><h3 class="card-title">🏆 Leaderboard</h3><div id="leaderboard-list"><p>Loading leaderboard...</p></div></div></div>
+            <div id="leaderboard-page-view" class="view hidden"></div>
         </div>
     </div>
     
@@ -155,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
+    tg.setHeaderColor('#7f52ff');
 
     // --- Global Variables ---
     let currentUser = {}; 
@@ -165,41 +161,37 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const views = document.querySelectorAll('.view');
     const navItems = document.querySelectorAll('.nav-item');
-    const loadedData = new Set(); 
-
+    
     // --- Navigation ---
     function navigate(viewId) {
         views.forEach(v => v.classList.add('hidden'));
         const targetView = document.getElementById(viewId);
-        if(targetView) targetView.classList.remove('hidden');
-        
-        navItems.forEach(item => item.classList.toggle('active', item.dataset.view === viewId));
-        
-        if (!loadedData.has(viewId)) {
+        if(targetView) {
+            targetView.classList.remove('hidden');
+            // Dynamically create content for views that need it
             switch (viewId) {
-                case 'history-view': renderHistory(); break;
-                case 'leaderboard-page-view': renderLeaderboard(); break;
-                case 'referral-view': renderReferralView(); break;
-                case 'shop-view': renderShopItems(); break;
+                case 'tasks-view': renderTasksView(); break;
+                case 'shop-view': renderShopView(); break;
                 case 'bonus-view': renderBonusView(); break;
+                case 'withdraw-view': renderWithdrawView(); break;
+                case 'history-view': renderHistoryView(); break;
+                case 'referral-view': renderReferralView(); break;
+                case 'leaderboard-page-view': renderLeaderboardView(); break;
             }
-            loadedData.add(viewId);
         }
+        navItems.forEach(item => item.classList.toggle('active', item.dataset.view === viewId));
     }
-
-    // --- UI Update Functions ---
+    
+    // --- UI Update ---
     function updateUI(userData) {
         if (!userData) return;
         currentUser = userData;
         
+        // Profile Card
         document.getElementById('user-name').textContent = userData.name || 'User';
-        document.getElementById('welcome-name').textContent = userData.name?.split(' ')[0] || 'User';
         document.getElementById('user-points').textContent = `${userData.points || 0} Points`;
-        document.getElementById('withdraw-balance').textContent = userData.points || 0;
-        
         const profilePicImg = document.getElementById('profile-img');
         const profilePicInitial = document.querySelector('.profile-pic .initial');
-        
         if (userData.photo_url) {
             profilePicImg.src = userData.photo_url;
             profilePicImg.style.display = 'block';
@@ -209,18 +201,17 @@ document.addEventListener('DOMContentLoaded', () => {
             profilePicInitial.textContent = (userData.name || 'U').charAt(0).toUpperCase();
             profilePicInitial.style.display = 'block';
         }
-        
-        document.getElementById('stats-total-ads').textContent = userData.stats?.totalAds || 0;
-        document.getElementById('stats-referrals').textContent = userData.stats?.referrals || 0;
-        
+
+        // Stats
         const today = new Date().toISOString().slice(0, 10);
         document.getElementById('stats-today-ads').textContent = (userData.stats?.lastAdDate === today) ? (userData.stats.adsToday || 0) : 0;
-        
-        if (appSettings.botUsername && userData.referralCode) {
-            const referralLinkInput = document.getElementById('referral-link');
-            if (referralLinkInput) referralLinkInput.value = `https://t.me/${appSettings.botUsername}?start=${userData.referralCode}`;
-        }
-        
+        document.getElementById('stats-total-ads').textContent = userData.stats?.totalAds || 0;
+        document.getElementById('stats-referrals').textContent = userData.stats?.referrals || 0;
+
+        // Welcome Card
+        document.getElementById('welcome-name').textContent = userData.name?.split(' ')[0] || 'User';
+
+        // Notice
         const noticeCard = document.getElementById('notice-card');
         if (appSettings.notice) {
             document.getElementById('notice-text').innerText = appSettings.notice;
@@ -228,70 +219,33 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             noticeCard.classList.add('hidden');
         }
-
-        updateAdButtonStatus(userData.stats);
     }
 
-    function updateAdButtonStatus(stats = {}) {
+    // --- Dynamic View Renderers ---
+    function renderTasksView() {
+        const view = document.getElementById('tasks-view');
+        view.innerHTML = `
+            <div class="card"><h3 class="card-title">Promote Services</h3><p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;">আপনার ব্যালেন্স দিয়ে আপনার চ্যানেল প্রোমোট করুন।</p><button class="action-button" id="go-to-shop-btn-tasks" style="margin-top: 15px;">🚀 Promote Now</button></div>
+            <div class="card"><h3 class="card-title">Watch Ads & Earn</h3><p style="color:var(--secondary-text-color); font-size: 14px; margin-top: -10px;" id="ads-left-text-tasks">Loading...</p><button class="action-button" id="watch-ad-btn-tasks" disabled><svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="currentColor"><path d="M22,10.45V13.55A1,1 0 0,1 21,14.55C20.84,14.55 20.68,14.5 20.53,14.43L18,13.35V16.5A1.5,1.5 0 0,1 16.5,18H3.5A1.5,1.5 0 0,1 2,16.5V7.5A1.5,1.5 0 0,1 3.5,6H16.5A1.5,1.5 0 0,1 18,7.5V10.65L20.53,9.57C20.83,9.44 21.17,9.5 21.39,9.73C21.5,9.84 21.56,10 21.56,10.15L22,10.45M10,10.5A1.5,1.5 0 0,0 8.5,12A1.5,1.5 0 0,0 10,13.5A1.5,1.5 0 0,0 11.5,12A1.5,1.5 0 0,0 10,10.5Z" /></svg><span>Watch Ad</span></button></div>`;
+        
+        const stats = currentUser.stats || {};
         const today = new Date().toISOString().slice(0, 10);
-        let adsWatchedToday = (stats.lastAdDate === today) ? (stats.adsToday || 0) : 0;
+        const adsWatchedToday = (stats.lastAdDate === today) ? (stats.adsToday || 0) : 0;
         const dailyLimit = appSettings.dailyAdLimit || 20;
         const adsLeft = dailyLimit - adsWatchedToday;
         
-        document.getElementById('ads-left-text').textContent = `You have ${adsLeft > 0 ? adsLeft : 0} ads left for today.`;
-        const watchAdBtn = document.getElementById('watch-ad-btn');
+        document.getElementById('ads-left-text-tasks').textContent = `You have ${adsLeft > 0 ? adsLeft : 0} ads left for today.`;
+        const watchAdBtn = document.getElementById('watch-ad-btn-tasks');
         watchAdBtn.disabled = adsLeft <= 0;
         watchAdBtn.querySelector('span').textContent = adsLeft > 0 ? 'Watch Ad' : 'Limit Reached';
+        
+        watchAdBtn.onclick = handleWatchAd;
+        document.getElementById('go-to-shop-btn-tasks').onclick = () => navigate('shop-view');
     }
-    
-    // --- Event Listeners ---
-    navItems.forEach(item => item.addEventListener('click', (e) => navigate(e.currentTarget.dataset.view)));
-    document.getElementById('leaderboard-btn').addEventListener('click', () => navigate('leaderboard-page-view'));
-    document.getElementById('go-to-shop-btn').addEventListener('click', () => navigate('shop-view'));
-    document.getElementById('join-channel-btn').addEventListener('click', () => { if (appSettings.joinChannelUrl) tg.openLink(appSettings.joinChannelUrl); });
 
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-        const isLight = document.body.classList.toggle('light');
-        document.body.classList.toggle('dark', !isLight);
-        const newTheme = isLight ? 'light' : 'dark';
-        localStorage.setItem('theme', newTheme);
-        tg.setHeaderColor(newTheme === 'dark' ? '#1f2937' : '#7f52ff');
-        tg.setBackgroundColor(newTheme === 'dark' ? '#1f2937' : '#f3f4f6');
-    });
-
-    // --- Gigapub Ad Logic ---
-    document.getElementById('watch-ad-btn').addEventListener('click', () => {
-        const watchAdBtn = document.getElementById('watch-ad-btn');
-        watchAdBtn.disabled = true;
-        watchAdBtn.querySelector('span').textContent = 'Loading Ad...';
-
-        window.showGiga().then(() => {
-            const today = new Date().toISOString().slice(0, 10);
-            const adReward = appSettings.adReward || 10;
-            const userStatsRef = db.ref(`users/${userId}/stats`);
-            
-            db.ref(`users/${userId}/points`).set(firebase.database.ServerValue.increment(adReward));
-            userStatsRef.child('totalAds').set(firebase.database.ServerValue.increment(1));
-            
-            userStatsRef.transaction(stats => {
-                if (stats) {
-                    stats.adsToday = (stats.lastAdDate === today) ? (stats.adsToday || 0) + 1 : 1;
-                    stats.lastAdDate = today;
-                }
-                return stats;
-            }).then(() => {
-                tg.HapticFeedback.notificationOccurred('success');
-                tg.showAlert(`Congratulations! You've earned ${adReward} points.`);
-            });
-        }).catch(e => {
-            tg.showAlert('No ad available right now. Please try again later.');
-        }).finally(() => {
-            updateAdButtonStatus(currentUser.stats);
-        });
-    });
-
-    // --- Dynamic View Rendering ---
-    function renderShopItems() {
+    function renderShopView() {
+        const view = document.getElementById('shop-view');
+        view.innerHTML = `<div class="card"><h3 class="card-title">🛒 Shop</h3><div id="shop-items-container"><p>Loading shop items...</p></div></div>`;
         const container = document.getElementById('shop-items-container');
         const shopSettings = appSettings.shop || {};
         const enabledItems = Object.entries(shopSettings).filter(([_, item]) => item.enabled);
@@ -311,22 +265,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderHistory() {
+    function renderHistoryView() {
+        const view = document.getElementById('history-view');
+        view.innerHTML = `<div class="card"><h3 class="card-title">Transaction History</h3><div id="history-list"><p>Loading history...</p></div></div>`;
         const list = document.getElementById('history-list');
-        list.innerHTML = '<p>Loading history...</p>';
         const promises = [
             db.ref('withdrawals').orderByChild('userId').equalTo(userId).once('value'),
             db.ref('purchases').orderByChild('userId').equalTo(userId).once('value')
         ];
         Promise.all(promises).then(snapshots => {
             let allHistory = [];
-            snapshots[0].forEach(s => allHistory.push({ ...s.val(), type: `Withdraw`, time: s.val().requestedAt, amount: s.val().amount }));
-            snapshots[1].forEach(s => allHistory.push({ ...s.val(), type: `Purchase`, time: s.val().createdAt, amount: s.val().cost }));
+            snapshots[0].forEach(s => allHistory.push({ ...s.val(), key:s.key, type: `Withdraw`, time: s.val().requestedAt, amount: s.val().amount }));
+            snapshots[1].forEach(s => allHistory.push({ ...s.val(), key:s.key, type: `Purchase`, time: s.val().createdAt, amount: s.val().cost }));
             allHistory.sort((a, b) => b.time - a.time);
 
             if (allHistory.length === 0) {
-                list.innerHTML = '<p>No transaction history found.</p>';
-                return;
+                list.innerHTML = '<p>No transaction history found.</p>'; return;
             }
             list.innerHTML = '';
             allHistory.forEach(item => {
@@ -334,15 +288,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
-    function renderLeaderboard() {
+    
+    function renderLeaderboardView() {
+        const view = document.getElementById('leaderboard-page-view');
+        view.innerHTML = `<div class="card"><h3 class="card-title">🏆 Leaderboard</h3><div id="leaderboard-list"><p>Loading leaderboard...</p></div></div>`;
         const list = document.getElementById('leaderboard-list');
-        list.innerHTML = '<p>Loading leaderboard...</p>';
         db.ref('users').orderByChild('points').limitToLast(50).once('value', s => {
             if (!s.exists()) { list.innerHTML = '<p>Leaderboard is empty.</p>'; return; }
-            const users = [];
+            let users = [];
             s.forEach(cs => users.push(cs.val()));
-            users.reverse();
+            users.sort((a,b) => (b.points || 0) - (a.points || 0));
 
             list.innerHTML = '';
             users.forEach((user, index) => {
@@ -352,30 +307,117 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.className = `leaderboard-item ${rank <= 3 ? 'rank-' + rank : ''}`;
                 item.innerHTML = `
                     <div class="rank">#${rank}</div>${picHtml}
-                    <div class="info">
+                    <div class="info" onclick="tg.openLink('tg://user?id=${user.id}')">
                         <div class="name">${user.name || 'Anonymous'}</div>
                         <div class="details">
                             <span style="color:var(--accent-color);font-weight:600;">${user.points || 0} Points</span> • 
-                            <span><svg style="width:14px;height:14px;vertical-align:middle;" viewBox="0 0 24 24" fill="currentColor"><path d="M16,11A3,3 0 0,0 13,8A3,3 0 0,0 10,11A3,3 0 0,0 13,14A3,3 0 0,0 16,11M8,11A5,5 0 0,1 13,6A5,5 0 0,1 18,11A5,5 0 0,1 13,16A5,5 0 0,1 8,11M8,19C5.33,19 0,20.33 0,23V24H26V23C26,20.33 20.67,19 18,19H8Z"/></svg> ${user.stats?.referrals || 0}</span>
+                            <span><svg style="width:14px;height:14px;vertical-align:middle;" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3m-8 0a5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5m0 8c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4"/></svg> ${user.stats?.referrals || 0}</span>
                         </div>
                     </div>`;
-                item.querySelector('.info').addEventListener('click', () => tg.openLink(`tg://user?id=${user.id}`));
                 list.appendChild(item);
             });
         });
     }
-    
+
     function renderReferralView() {
-        const container = document.getElementById('referral-view');
-        container.innerHTML = `
+        const view = document.getElementById('referral-view');
+        const referralLink = currentUser.referralCode ? `https://t.me/${appSettings.botUsername}?start=${currentUser.referralCode}` : '';
+        view.innerHTML = `
             <div class="card">
-                <div style="text-align:center;"><h3 class="card-title" style="text-align:center; border:none;">Refer & Earn Forever</h3><p style="color: var(--secondary-text-color); margin-top: -10px;">Earn <strong id="referral-commission-text" style="color:var(--accent-color)">${appSettings.referralCommission || 10}%</strong> of your friends earnings for life!</p></div>
-                <div style="text-align: center; margin-top: 20px;"><label for="referral-link">Your Referral Link</label><input type="text" id="referral-link" value="${currentUser.referralCode ? `https://t.me/${appSettings.botUsername}?start=${currentUser.referralCode}` : ''}" readonly style="text-align:center; border-style:dashed;">
-                <div class="share-buttons" style="display:flex; gap:10px; margin-top:15px;"><button class="share-btn" style="background-color:#2AABEE;flex-grow:1;" onclick="shareLink('tg')">Telegram</button><button class="share-btn" style="background-color:#25D366;flex-grow:1;" onclick="shareLink('wa')">WhatsApp</button></div></div>
+                <div style="text-align:center;"><h3 class="card-title" style="text-align:center; border:none;">Refer & Earn Forever</h3><p style="color: var(--secondary-text-color); margin-top: -10px;">Earn <strong style="color:var(--accent-color)">${appSettings.referralCommission || 10}%</strong> of your friends earnings for life!</p></div>
+                <div style="text-align: center; margin-top: 20px;"><label for="referral-link-input">Your Referral Link</label><input type="text" id="referral-link-input" value="${referralLink}" readonly style="text-align:center; border-style:dashed;">
+                <div style="display:flex; gap:10px; margin-top:15px;"><button class="action-button" style="background-color:#2AABEE;flex-grow:1;" onclick="shareLink('tg')">Telegram</button><button class="action-button" style="background-color:#25D366;flex-grow:1;" onclick="shareLink('wa')">WhatsApp</button></div></div>
             </div>`;
     }
+    
+    // Stubs for other views
+    function renderBonusView() { /* ... Implement Bonus View UI ... */ }
+    function renderWithdrawView() {
+        const view = document.getElementById('withdraw-view');
+        const enabled = appSettings.isWithdrawEnabled;
+        let methodsHtml = '';
+        if(enabled && appSettings.withdrawalMethods) {
+            Object.values(appSettings.withdrawalMethods).filter(m => m.enabled).forEach(method => {
+                methodsHtml += `<option value="${method.name}">${method.name}</option>`;
+            });
+        }
+        
+        view.innerHTML = enabled ? `
+            <div class="card" id="withdraw-card"><h3 class="card-title">Withdraw Points</h3>
+                <div class="form-group"><label>Balance: <span id="withdraw-balance-form">${currentUser.points || 0}</span> points</label><label style="font-size:12px; color:var(--secondary-text-color)">Min: ${appSettings.minWithdraw || '...'}</label><input type="number" id="withdraw-amount-form" placeholder="e.g., 20000"></div>
+                <div class="form-group"><label for="withdraw-method-form">Method</label><select id="withdraw-method-form">${methodsHtml}</select></div>
+                <div class="form-group"><label for="withdraw-account-form">Account Details</label><input type="text" id="withdraw-account-form" placeholder="Your account number or ID"></div>
+                <button class="action-button" id="submit-withdraw-btn-form">Submit Request</button>
+            </div>` : `<div class="card"><p>Withdrawal is temporarily disabled.</p></div>`;
+        
+        if (enabled) {
+            document.getElementById('submit-withdraw-btn-form').onclick = handleSubmitWithdraw;
+        }
+    }
+
+
+    // --- Action Handlers ---
+    function handleWatchAd() {
+        const watchAdBtn = document.getElementById('watch-ad-btn-tasks');
+        watchAdBtn.disabled = true;
+        watchAdBtn.querySelector('span').textContent = 'Loading Ad...';
+
+        window.showGiga().then(() => {
+            const today = new Date().toISOString().slice(0, 10);
+            const adReward = appSettings.adReward || 10;
+            const userStatsRef = db.ref(`users/${userId}/stats`);
+            
+            db.ref(`users/${userId}/points`).set(firebase.database.ServerValue.increment(adReward));
+            userStatsRef.child('totalAds').set(firebase.database.ServerValue.increment(1));
+            
+            userStatsRef.transaction(stats => {
+                stats = stats || { adsToday: 0, lastAdDate: '' };
+                stats.adsToday = (stats.lastAdDate === today) ? (stats.adsToday || 0) + 1 : 1;
+                stats.lastAdDate = today;
+                return stats;
+            }).then(() => {
+                tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert(`Congratulations! You've earned ${adReward} points.`);
+            });
+        }).catch(e => {
+            tg.showAlert('No ad available right now. Please try again later.');
+        }).finally(() => {
+            renderTasksView(); // Re-render the view to update button state
+        });
+    }
+
+    window.handlePurchase = (itemKey) => {
+        const itemConfig = appSettings.shop[itemKey];
+        const link = document.getElementById(`shop-${itemKey}-link`).value;
+        const quantity = parseInt(document.getElementById(`shop-${itemKey}-quantity`).value, 10);
+        if (!link || !quantity || quantity <= 0) { tg.showAlert('Please provide a valid link and quantity.'); return; }
+        const cost = quantity * itemConfig.price;
+        if ((currentUser.points || 0) < cost) { tg.showAlert(`You need ${cost} points.`); return; }
+        const purchaseData = { userId, userName, itemType: itemConfig.title, quantity, cost, link, status: 'pending', createdAt: firebase.database.ServerValue.TIMESTAMP };
+        db.ref('purchases').push(purchaseData)
+            .then(() => db.ref(`users/${userId}/points`).set(firebase.database.ServerValue.increment(-cost)))
+            .then(() => tg.showAlert('Purchase request sent!'));
+    };
+
+    function handleSubmitWithdraw() {
+        const amount = parseInt(document.getElementById('withdraw-amount-form').value, 10);
+        const method = document.getElementById('withdraw-method-form').value;
+        const account = document.getElementById('withdraw-account-form').value;
+        if (!method) { tg.showAlert('No withdrawal method available.'); return; }
+        if (!amount || amount < (appSettings.minWithdraw || 0) || !account) { tg.showAlert(`Please check amount and account details.`); return; }
+        if ((currentUser.points || 0) < amount) { tg.showAlert("You don't have enough points."); return; }
+        const requestData = { userId, userName, amount, method, account, status: 'pending', requestedAt: firebase.database.ServerValue.TIMESTAMP };
+        db.ref('withdrawals').push(requestData)
+            .then(() => db.ref(`users/${userId}/points`).set(firebase.database.ServerValue.increment(-amount)))
+            .then(() => {
+                tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert('Your request has been submitted successfully!');
+                renderWithdrawView(); // Re-render to clear fields
+            });
+    }
+
     window.shareLink = (platform) => {
-        const link = document.getElementById('referral-link').value;
+        const link = document.getElementById('referral-link-input').value;
         if (!link) return;
         const text = `Join ${appSettings.appName || 'Softcity'} and earn rewards!`;
         if (platform === 'tg') tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
@@ -384,49 +426,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- App Initialization ---
     function initializeApp() {
-        db.ref('settings').on('value', (snapshot) => {
-            if (!snapshot.exists()) return;
-            appSettings = snapshot.val();
-            
-            document.title = appSettings.appName || 'Softcity';
-            document.querySelector('.top-header .title').textContent = `${appSettings.appName || 'Softcity'} 💸`;
-            document.getElementById('min-withdraw').textContent = appSettings.minWithdraw || '...';
-            
-            const withdrawCard = document.getElementById('withdraw-card');
-            const disabledCard = document.getElementById('withdraw-disabled-card');
-            const methodSelect = document.getElementById('withdraw-method');
-            methodSelect.innerHTML = '';
-
-            if (appSettings.isWithdrawEnabled && appSettings.withdrawalMethods) {
-                withdrawCard?.classList.remove('hidden');
-                disabledCard?.classList.add('hidden');
-                Object.values(appSettings.withdrawalMethods).filter(m => m.enabled).forEach(method => methodSelect.innerHTML += `<option value="${method.name}">${method.name}</option>`);
+        // First, fetch settings
+        db.ref('settings').on('value', (settingsSnapshot) => {
+            if (settingsSnapshot.exists()) {
+                appSettings = settingsSnapshot.val();
+                // After getting settings, fetch user data
+                db.ref(`users/${userId}`).on('value', (userSnapshot) => {
+                    if (userSnapshot.exists()) {
+                        updateUI(userSnapshot.val());
+                    } else {
+                        // Create new user if not exists
+                        const referralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                        const newUser = { id: userId, name: userName, points: 0, referralCode, photo_url: userPhoto || '', stats: { totalAds: 0, referrals: 0, adsToday: 0, lastAdDate: '' }, createdAt: new Date().toISOString() };
+                        db.ref(`users/${userId}`).set(newUser).then(() => updateUI(newUser));
+                    }
+                });
             } else {
-                withdrawCard?.classList.add('hidden');
-                disabledCard?.classList.remove('hidden');
-            }
-            if (currentUser.id) updateUI(currentUser);
-        });
-
-        db.ref(`users/${userId}`).on('value', (snapshot) => {
-            if (snapshot.exists()) {
-                updateUI(snapshot.val());
-            } else {
-                const referralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
-                const newUser = { id: userId, name: userName, points: 0, referralCode, photo_url: userPhoto || '', stats: { totalAds: 0, referrals: 0, adsToday: 0, lastAdDate: '' }, createdAt: new Date().toISOString() };
-                db.ref(`users/${userId}`).set(newUser).then(() => updateUI(newUser));
+                // Handle case where settings are not found
+                console.error("App settings not found in Firebase.");
+                document.body.innerHTML = "Error: App configuration is missing. Please contact admin.";
             }
         });
 
+        // Set initial theme
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.body.className = savedTheme;
         tg.setHeaderColor(savedTheme === 'dark' ? '#1f2937' : '#7f52ff');
         tg.setBackgroundColor(savedTheme === 'dark' ? '#1f2937' : '#f3f4f6');
+        
+        // Initial navigation
         navigate('home-view');
+        
+        // Add event listeners for home screen buttons
+        document.getElementById('leaderboard-btn').onclick = () => navigate('leaderboard-page-view');
+        document.getElementById('join-channel-btn').onclick = () => { if (appSettings.joinChannelUrl) tg.openLink(appSettings.joinChannelUrl); };
     }
     
     initializeApp();
 });
 </script>
 </body>
-</html>```
+</html>
