@@ -117,8 +117,36 @@
                     </div>
                 </div>
 
-                <div id="shop-orders" class="admin-page"><div class="card"><h2>Pending Shop Orders</h2><table id="purchases-table"><thead><tr><th>Date</th><th>User</th><th>Item</th><th>Link</th><th>Cost</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
-                <div id="withdrawals" class="admin-page"><div class="card"><h2>Pending Withdrawals</h2><table id="withdrawals-table"><thead><tr><th>Date</th><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
+                <div id="shop-orders" class="admin-page">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2>Recent Shop Orders</h2>
+                            <button id="refresh-purchases-btn" class="btn btn-edit">🔄 Refresh</button>
+                        </div>
+                        <table id="purchases-table">
+                            <thead>
+                                <tr><th>Date</th><th>User</th><th>Item</th><th>Link</th><th>Cost</th><th>Status</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="withdrawals" class="admin-page">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2>Recent Withdrawals</h2>
+                            <button id="refresh-withdrawals-btn" class="btn btn-edit">🔄 Refresh</button>
+                        </div>
+                        <table id="withdrawals-table">
+                            <thead>
+                                <tr><th>Date</th><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Status</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div id="users" class="admin-page"><div class="card"><h2>Manage Users</h2><input type="text" id="search-user-input" placeholder="Search by User ID or Name..."><table id="users-table"><thead><tr><th>User ID</th><th>Name</th><th>Points</th><th>Referrals</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
                 <div id="notice" class="admin-page"><div class="card"><h2>Send Notice to All Users</h2><p style="color:var(--light-text);">This notice will appear in every user's app.</p><textarea id="notice-input" rows="4" placeholder="Enter notice..."></textarea><button id="send-notice-btn" class="btn btn-edit">Send Notice</button><button id="remove-notice-btn" class="btn btn-reject" style="margin-left:10px;">Remove Notice</button></div></div>
             </div>
@@ -171,7 +199,6 @@
             if (!snapshot.exists()) return;
             const settings = snapshot.val();
             
-            // General, Earning, Withdraw settings
             settingFields.forEach(key => {
                 const el = document.getElementById(`setting-${key}`);
                 if (el) {
@@ -180,10 +207,7 @@
                 }
             });
 
-            // Notice
             document.getElementById('notice-input').value = settings.notice || '';
-            
-            // Dynamic settings
             renderWithdrawalMethods(settings.withdrawalMethods || {});
             renderShopItems(settings.shop || {});
             renderDailyBonus(settings.dailyBonusPoints || [10, 20, 30, 40, 50, 60, 100]);
@@ -193,7 +217,6 @@
     document.getElementById('save-settings-btn').addEventListener('click', () => {
         const updates = {};
         
-        // General, Earning, Withdraw settings
         settingFields.forEach(key => {
             const el = document.getElementById(`setting-${key}`);
             if (el) {
@@ -201,20 +224,15 @@
             }
         });
 
-        // Withdrawal Methods
         updates.withdrawalMethods = {};
         document.querySelectorAll('#withdrawal-methods-container .dynamic-item-container').forEach(item => {
             const key = item.dataset.key;
             const name = item.querySelector('.method-name').value.trim();
             if (name) {
-                updates.withdrawalMethods[key] = {
-                    name: name,
-                    enabled: item.querySelector('.method-enabled').value === 'true'
-                };
+                updates.withdrawalMethods[key] = { name: name, enabled: item.querySelector('.method-enabled').value === 'true' };
             }
         });
         
-        // Shop Items
         updates.shop = {};
         document.querySelectorAll('#shop-settings-container .dynamic-item-container').forEach(item => {
             const key = item.querySelector('.shop-key').value.trim();
@@ -229,13 +247,10 @@
             }
         });
 
-        // Daily Bonus
         updates.dailyBonusPoints = Array.from(document.querySelectorAll('.daily-bonus-input')).map(i => Number(i.value));
-
         db.ref('settings').update(updates).then(() => alert('Settings saved successfully!'));
     });
 
-    // Dynamic UI functions for Settings
     function renderWithdrawalMethods(methods) {
         const container = document.getElementById('withdrawal-methods-container'); container.innerHTML = '';
         Object.entries(methods).forEach(([key, value]) => addMethodUI(key, value));
@@ -268,15 +283,15 @@
             <button class="delete-btn" onclick="this.parentElement.remove()">X</button>
             <h4>Service Details</h4>
             <div class="setting-grid">
-                <div class="form-group"><label>Service Key (no spaces, e.g., 'members')</label><input type="text" class="shop-key" value="${key}"></div>
-                <div class="form-group"><label>Service Title (e.g., 'Buy Telegram Members')</label><input type="text" class="shop-title" value="${value.title}"></div>
+                <div class="form-group"><label>Service Key (e.g., 'members')</label><input type="text" class="shop-key" value="${key}"></div>
+                <div class="form-group"><label>Service Title</label><input type="text" class="shop-title" value="${value.title}"></div>
                 <div class="form-group"><label>Price (per item)</label><input type="number" class="shop-price" value="${value.price}"></div>
                 <div class="form-group"><label>Status</label><select class="shop-enabled"><option value="true" ${value.enabled ? 'selected' : ''}>Enabled</option><option value="false" ${!value.enabled ? 'selected' : ''}>Disabled</option></select></div>
             </div>
             <h5>User Input Fields</h5>
             <div class="setting-grid">
-                 <div class="form-group"><label>Link Input Title (e.g., 'Channel Link')</label><input type="text" class="shop-link-title" value="${value.linkTitle}"></div>
-                 <div class="form-group"><label>Link Input Placeholder (e.g., 'https://t.me/yourchannel')</label><input type="text" class="shop-placeholder" value="${value.placeholder}"></div>
+                 <div class="form-group"><label>Link Input Title</label><input type="text" class="shop-link-title" value="${value.linkTitle}"></div>
+                 <div class="form-group"><label>Link Input Placeholder</label><input type="text" class="shop-placeholder" value="${value.placeholder}"></div>
             </div>`;
         container.appendChild(item);
     }
@@ -289,27 +304,84 @@
     // --- Order & Withdrawal Handling ---
     const createRow = (d, type) => {
         const date = new Date(type === 'purchase' ? d.createdAt : d.requestedAt).toLocaleString();
+        const status = d.status || 'pending';
+
+        let statusStyle = '';
+        if (status === 'completed') statusStyle = 'color: var(--success-color); font-weight: bold; text-transform: capitalize;';
+        else if (status === 'rejected') statusStyle = 'color: var(--danger-color); font-weight: bold; text-transform: capitalize;';
+        else statusStyle = 'color: var(--warning-color); font-weight: bold; text-transform: capitalize;';
+        
+        const actions = status === 'pending'
+            ? `<button class="btn btn-approve" onclick="handleRequest('${type}','${d.key}','approved')">Approve</button>
+               <button class="btn btn-reject" onclick="handleRequest('${type}','${d.key}','rejected')" style="margin-left:5px;">Reject</button>`
+            : `<span>Processed</span>`;
+        
         const info = type === 'purchase'
             ? `<td>${d.quantity} ${d.itemType}</td><td><a href="${d.link}" target="_blank">View Link</a></td><td>${d.cost}</td>`
             : `<td>${d.amount}</td><td>${d.method}</td><td>${d.account}</td>`;
-        return `<td>${date}</td><td>${d.userName} (${d.userId})</td>${info}
-                <td><button class="btn btn-approve" onclick="handleRequest('${type}','${d.key}','approved')">Approve</button>
-                    <button class="btn btn-reject" onclick="handleRequest('${type}','${d.key}','rejected')" style="margin-left:5px;">Reject</button></td>`;
+
+        return `<td>${date}</td><td>${d.userName} (${d.userId})</td>${info}<td style="${statusStyle}">${status}</td><td>${actions}</td>`;
     };
     
-    function loadPurchases() { db.ref('purchases').orderByChild('status').equalTo('pending').on('value', s => { const tbody = document.querySelector("#purchases-table tbody"); tbody.innerHTML = ''; if (s.exists()) s.forEach(c => { const d = {key: c.key, ...c.val()}; const row = tbody.insertRow(); row.innerHTML = createRow(d, 'purchase'); }); else tbody.innerHTML = `<tr><td colspan="6" align="center">No pending orders.</td></tr>`; }); }
-    function loadWithdrawals() { db.ref('withdrawals').orderByChild('status').equalTo('pending').on('value', s => { const tbody = document.querySelector("#withdrawals-table tbody"); tbody.innerHTML = ''; if (s.exists()) s.forEach(c => { const d = {key: c.key, ...c.val()}; const row = tbody.insertRow(); row.innerHTML = createRow(d, 'withdrawal'); }); else tbody.innerHTML = `<tr><td colspan="6" align="center">No pending withdrawals.</td></tr>`; }); }
+    function loadPurchases() { 
+        db.ref('purchases').orderByKey().limitToLast(50).once('value', s => { 
+            const tbody = document.querySelector("#purchases-table tbody"); 
+            tbody.innerHTML = ''; 
+            if (s.exists()) {
+                const requests = [];
+                s.forEach(c => requests.push({key: c.key, ...c.val()}));
+                requests.reverse().forEach(d => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = createRow(d, 'purchase');
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="7" align="center">No orders found.</td></tr>`; 
+            }
+        }); 
+    }
+
+    function loadWithdrawals() { 
+        db.ref('withdrawals').orderByKey().limitToLast(50).once('value', s => { 
+            const tbody = document.querySelector("#withdrawals-table tbody"); 
+            tbody.innerHTML = ''; 
+            if (s.exists()) {
+                const requests = [];
+                s.forEach(c => requests.push({key: c.key, ...c.val()}));
+                requests.reverse().forEach(d => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = createRow(d, 'withdrawal');
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="7" align="center">No withdrawals found.</td></tr>`; 
+            }
+        }); 
+    }
+    
+    document.getElementById('refresh-withdrawals-btn').addEventListener('click', loadWithdrawals);
+    document.getElementById('refresh-purchases-btn').addEventListener('click', loadPurchases);
+
 
     window.handleRequest = (type, key, status) => {
         const ref = db.ref(`${type}s/${key}`);
         if (status === 'approved') {
-            ref.update({ status: 'completed' }).then(() => alert(`${type} approved.`));
+            ref.update({ status: 'completed' }).then(() => {
+                alert(`${type} approved.`);
+                if (type === 'withdrawal') loadWithdrawals(); else loadPurchases();
+            });
         } else { // rejected
             ref.once('value').then(s => {
+                if (!s.exists()) return;
                 const data = s.val();
+                if (data.status !== 'pending') {
+                    alert('This request has already been processed.');
+                    return;
+                }
                 const pointsToReturn = data.cost || data.amount;
                 db.ref(`users/${data.userId}/points`).transaction(p => (p || 0) + pointsToReturn);
-                ref.update({ status: 'rejected' }).then(() => alert(`${type} rejected, points returned.`));
+                ref.update({ status: 'rejected' }).then(() => {
+                    alert(`${type} rejected, points returned.`);
+                    if (type === 'withdrawal') loadWithdrawals(); else loadPurchases();
+                });
             });
         }
     };
