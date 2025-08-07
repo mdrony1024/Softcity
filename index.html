@@ -257,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUser = {}; 
     let appSettings = {};
     const userId = tg.initDataUnsafe?.user?.id || 'test_user_12345';
+    // These are only used for new users now, the app will update them from Firebase.
     const userName = tg.initDataUnsafe?.user?.first_name || 'Test User';
     const userPhoto = tg.initDataUnsafe?.user?.photo_url || null;
 
@@ -738,17 +739,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // --- START OF MODIFIED CODE ---
+
         db.ref(`users/${userId}`).once('value', (snapshot) => {
+            const freshName = tg.initDataUnsafe?.user?.first_name || 'User';
+            const freshPhotoUrl = tg.initDataUnsafe?.user?.photo_url || null;
+
             if (snapshot.exists()) {
-                 db.ref(`users/${userId}`).on('value', (snap) => updateUI(snap.val()));
+                // For existing users, check if profile data needs an update
+                const existingData = snapshot.val();
+                const updates = {};
+
+                if (existingData.name !== freshName) {
+                    updates.name = freshName;
+                }
+                if (existingData.profilePhotoUrl !== freshPhotoUrl) {
+                    updates.profilePhotoUrl = freshPhotoUrl;
+                }
+
+                // If name or photo has changed, update it in Firebase
+                if (Object.keys(updates).length > 0) {
+                    db.ref(`users/${userId}`).update(updates);
+                }
+                
+                // Set up a listener to always get the latest data for the UI
+                db.ref(`users/${userId}`).on('value', (snap) => updateUI(snap.val()));
+
             } else {
+                // For new users, create the profile with fresh data
                 const referralCode = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
                 const newUser = { 
                     id: String(userId), 
-                    name: userName, 
+                    name: freshName, 
                     points: 0, 
                     referralCode: referralCode,
-                    profilePhotoUrl: userPhoto, // Save profile photo URL from Telegram
+                    profilePhotoUrl: freshPhotoUrl,
                     stats: { totalAdsWatched: 0, adsWatchedToday: 0, referrals: 0 }, 
                     bonus: { streak: 0 }, 
                     createdAt: new Date().toISOString() 
@@ -756,10 +781,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 db.ref(`users/${userId}`).set(newUser).then(() => {
                     const startParam = tg.initDataUnsafe?.start_param;
                     if(startParam) handleReferral(startParam);
+                    // Set up the listener after creating the user
                     db.ref(`users/${userId}`).on('value', (snap) => updateUI(snap.val()));
                 });
             }
         });
+
+        // --- END OF MODIFIED CODE ---
 
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.body.className = savedTheme;
