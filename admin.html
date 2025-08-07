@@ -4,63 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Softcity</title>
+    <!-- IMPORTANT: Auth SDK is now included -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --primary-color: #2c3e50; --secondary-color: #3498db; --success-color: #2ecc71; --danger-color: #e74c3c; --warning-color: #f39c12; --light-bg: #ecf0f1; --white: #fff; --text-color: #34495e; --border-color: #dce4e8; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: var(--light-bg); color: var(--text-color); }
-        .main-container { display: flex; }
-        #login-view { display: flex; width: 100%; height: 100vh; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; z-index: 200; background: var(--light-bg); }
+        :root { --primary-color: #5856d6; --light-bg: #f0f2f5; --white: #fff; --dark-text: #1c1e21; --light-text: #666; --border-color: #ddd; --danger-color: #fa3e3e; --success-color: #42b72a; --warning-color: #f5a623; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: var(--light-bg); color: var(--dark-text); }
+        .main-container { display: flex; } /* New container */
+        #login-view { display: flex; width: 100%; height: 100vh; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; background-color: var(--light-bg); z-index: 200; }
         #admin-view { display: none; width: 100%; }
-        .card { background: var(--white); padding: 25px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .login-card { width: 380px; text-align: center; }
-        .login-card h1 { margin-bottom: 25px; color: var(--primary-color); }
-        .form-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; }
-        input, select, textarea { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; transition: border-color 0.3s; }
-        input:focus { border-color: var(--secondary-color); outline: none; }
-        .btn { padding: 12px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; transition: background-color 0.3s; }
-        .btn-primary { background-color: var(--secondary-color); color: white; width: 100%; }
-        .sidebar { width: 260px; background: #34495e; height: 100vh; position: fixed; color: var(--white); }
-        .sidebar-header { padding: 20px; text-align: center; background-color: rgba(0,0,0,0.2); }
-        .sidebar-header h2 { margin: 0; font-size: 24px; }
-        .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
-        .sidebar-nav ul li a { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; color: #ecf0f1; text-decoration: none; font-weight: 500; transition: background-color 0.3s; }
-        .sidebar-nav ul li a:hover { background-color: rgba(0,0,0,0.2); }
-        .sidebar-nav ul li a.active { background-color: var(--secondary-color); }
-        .submenu { list-style: none; padding-left: 0; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
-        .submenu.open { max-height: 500px; }
-        .submenu li a { padding-left: 40px; background-color: rgba(0,0,0,0.15); }
-        .badge { background-color: var(--danger-color); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-        .main-content { margin-left: 260px; padding: 30px; width: calc(100% - 260px); }
-        .admin-page { display: none; }
-        .admin-page.active { display: block; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; }
-        .stat-card { background: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
-        .stat-card-info .value { font-size: 28px; font-weight: 700; }
-        .stat-card-info .label { font-size: 14px; color: #7f8c8d; }
-        .stat-card-icon { font-size: 40px; opacity: 0.5; }
-        .stat-card.blue { border-left: 5px solid #3498db; } .stat-card.blue .stat-card-icon { color: #3498db; }
-        .stat-card.green { border-left: 5px solid #2ecc71; } .stat-card.green .stat-card-icon { color: #2ecc71; }
-        .stat-card.orange { border-left: 5px solid #f39c12; } .stat-card.orange .stat-card-icon { color: #f39c12; }
-        .stat-card.red { border-left: 5px solid #e74c3c; } .stat-card.red .stat-card-icon { color: #e74c3c; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 15px; border-bottom: 1px solid var(--border-color); text-align: left; }
-        thead { background-color: #f5f6f7; }
-        .btn-approve { background-color: var(--success-color); color: white; }
+        .sidebar { width: 240px; background: var(--white); height: 100vh; position: fixed; box-shadow: 2px 0 5px rgba(0,0,0,0.05); transition: width 0.3s ease; z-index: 100; overflow-x: hidden; }
+        .sidebar.collapsed { width: 80px; }
+        .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid var(--border-color); }
+        .sidebar-header h2 { margin: 0; font-size: 24px; color: var(--primary-color); white-space: nowrap; }
+        .sidebar.collapsed .sidebar-header h2 { display: none; }
+        .sidebar-nav ul { list-style: none; padding: 10px 0; margin: 0; }
+        .sidebar-nav ul li a { display: flex; align-items: center; padding: 15px 20px; color: #333; text-decoration: none; font-weight: 500; white-space: nowrap; border-left: 3px solid transparent; }
+        .sidebar-nav ul li a .icon { font-size: 22px; width: 40px; text-align: center; }
+        .sidebar-nav ul li a .title { transition: opacity 0.2s; }
+        .sidebar.collapsed .sidebar-nav ul li a .title { opacity: 0; display: none; }
+        .sidebar-nav ul li a.active, .sidebar-nav ul li a:hover { background: var(--light-bg); color: var(--primary-color); border-left-color: var(--primary-color); }
+        #sidebar-toggle { position: fixed; left: 220px; top: 15px; background: var(--white); border: 1px solid var(--border-color); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; z-index: 101; transition: left 0.3s ease; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        .sidebar.collapsed #sidebar-toggle { left: 60px; }
+        .main-content { margin-left: 240px; padding: 20px; width: calc(100% - 240px); transition: margin-left 0.3s ease, width 0.3s ease; }
+        .sidebar.collapsed ~ .main-content { margin-left: 80px; width: calc(100% - 80px); }
+        .container { max-width: 1200px; margin: auto; }
+        .admin-page { display: none; animation: fadeIn 0.5s; }
+        .admin-page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: var(--white); padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
+        h1, h2, h3, h4 { color: var(--dark-text); padding-bottom: 10px; margin-top: 0; }
+        h2, h3 { border-bottom: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border-color); text-align: left; vertical-align: middle; word-break: break-word; }
+        th { background-color: #f5f6f7; font-weight: 600; }
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-approve { background-color: var(--success-color); color: white; } 
         .btn-reject { background-color: var(--danger-color); color: white; }
+        .btn-edit { background-color: var(--primary-color); color: white; } 
+        .btn-save { background-color: var(--warning-color); color: white; }
+        .btn-add { background-color: #007bff; color: white; }
+        input, select, textarea { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; margin-top: 5px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .setting-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; padding-top: 15px; }
+        .dynamic-item-container { border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-top: 15px; position: relative; }
+        .delete-btn { position: absolute; top: 10px; right: 10px; background: var(--danger-color); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="login-view">
-        <div class="card login-card">
-            <h1>Admin Panel</h1>
+        <div class="card" style="width: 360px;">
+            <h1>Admin Login</h1>
             <div class="form-group"><label for="email-input">Email</label><input type="email" id="email-input"></div>
             <div class="form-group"><label for="password-input">Password</label><input type="password" id="password-input"></div>
-            <button id="login-btn" class="btn btn-primary">Login</button>
+            <button id="login-btn" class="btn btn-edit" style="width: 100%;">Login</button>
         </div>
     </div>
 
@@ -69,222 +70,337 @@
             <div class="sidebar-header"><h2>Softcity</h2></div>
             <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="#dashboard" class="nav-link active"><span>📊 Dashboard</span></a></li>
-                    <li>
-                        <a href="#withdrawals" class="nav-link has-submenu">
-                            <span>💸 Withdrawals</span>
-                            <span id="withdraw-badge" class="badge">0</span>
-                        </a>
-                        <ul class="submenu" id="withdraw-submenu">
-                            <li><a href="#" class="sub-link" data-page="withdrawals" data-status="pending">Pending</a></li>
-                            <li><a href="#" class="sub-link" data-page="withdrawals" data-status="approved">Approved</a></li>
-                            <li><a href="#" class="sub-link" data-page="withdrawals" data-status="rejected">Rejected</a></li>
-                            <li><a href="#" class="sub-link" data-page="withdrawals" data-status="all">All Withdrawals</a></li>
-                        </ul>
-                    </li>
-                     <li>
-                        <a href="#shop-orders" class="nav-link has-submenu">
-                            <span>🛒 Shop Orders</span>
-                            <span id="shop-badge" class="badge">0</span>
-                        </a>
-                        <ul class="submenu" id="shop-submenu">
-                            <li><a href="#" class="sub-link" data-page="shop-orders" data-status="pending">Pending</a></li>
-                            <li><a href="#" class="sub-link" data-page="shop-orders" data-status="approved">Approved</a></li>
-                            <li><a href="#" class="sub-link" data-page="shop-orders" data-status="rejected">Rejected</a></li>
-                            <li><a href="#" class="sub-link" data-page="shop-orders" data-status="all">All Orders</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#users" class="nav-link"><span>👥 Users</span></a></li>
-                    <li><a href="#settings" class="nav-link"><span>⚙️ Settings</span></a></li>
+                    <li><a href="#settings" class="nav-link active"><span class="icon">⚙️</span><span class="title">App Settings</span></a></li>
+                    <li><a href="#shop-orders" class="nav-link"><span class="icon">🛒</span><span class="title">Shop Orders</span></a></li>
+                    <li><a href="#withdrawals" class="nav-link"><span class="icon">💸</span><span class="title">Withdrawals</span></a></li>
+                    <li><a href="#users" class="nav-link"><span class="icon">👥</span><span class="title">Users</span></a></li>
+                    <li><a href="#notice" class="nav-link"><span class="icon">📢</span><span class="title">Notice</span></a></li>
                 </ul>
             </nav>
         </aside>
+        
+        <button id="sidebar-toggle">☰</button>
+
         <main class="main-content">
-            <div id="dashboard" class="admin-page active"></div>
-            <div id="withdrawals" class="admin-page"></div>
-            <div id="shop-orders" class="admin-page"></div>
-            <div id="users" class="admin-page"></div>
-            <div id="settings" class="admin-page"></div>
+            <div class="container">
+                <!-- Pages Container -->
+                <div id="settings" class="admin-page active">
+                    <div class="card">
+                        <h2>General Settings</h2>
+                        <div class="setting-grid">
+                            <div class="form-group"><label>App Name</label><input type="text" id="setting-appName"></div>
+                            <div class="form-group"><label>Bot Username (without @)</label><input type="text" id="setting-botUsername"></div>
+                            <div class="form-group"><label>Join Channel URL</label><input type="text" id="setting-joinChannelUrl"></div>
+                        </div>
+                        <hr>
+                        <h3>Earning Settings</h3>
+                        <div class="setting-grid">
+                            <div class="form-group"><label>Points Per Ad Reward</label><input type="number" id="setting-adReward"></div>
+                            <div class="form-group"><label>Daily Ad Limit</label><input type="number" id="setting-dailyAdLimit"></div>
+                            <div class="form-group"><label>Referral Commission (%)</label><input type="number" id="setting-referralCommission"></div>
+                        </div>
+                        <hr>
+                        <h3>Withdrawal Settings</h3>
+                        <div class="setting-grid">
+                            <div class="form-group"><label>Minimum Withdraw</label><input type="number" id="setting-minWithdraw"></div>
+                            <div class="form-group"><label>Maximum Withdraw</label><input type="number" id="setting-maxWithdraw"></div>
+                            <div class="form-group"><label>Enable Withdrawals</label><select id="setting-isWithdrawEnabled"><option value="true">Yes</option><option value="false">No</option></select></div>
+                        </div>
+                        <h4>Withdrawal Methods</h4>
+                        <div id="withdrawal-methods-container"></div>
+                        <button id="add-method-btn" class="btn btn-add" style="margin-top: 10px;">Add New Method</button>
+                        <hr>
+                        <h3>Shop Settings</h3>
+                        <div id="shop-settings-container"></div>
+                        <button id="add-shop-item-btn" class="btn btn-add" style="margin-top: 10px;">Add New Service</button>
+                        <hr>
+                        <h3>Daily Check-in Bonus Points</h3>
+                        <div id="daily-bonus-container" class="setting-grid"></div>
+                        <hr style="margin-top: 20px;">
+                        <button id="save-settings-btn" class="btn btn-save" style="width: 100%; padding: 15px; font-size: 16px;">Save All Settings</button>
+                    </div>
+                </div>
+
+                <div id="shop-orders" class="admin-page">
+                    <div class="card">
+                        <h2>Recent Shop Orders</h2>
+                        <table id="purchases-table">
+                            <thead>
+                                <tr><th>Date</th><th>User</th><th>Item</th><th>Link</th><th>Cost</th><th>Status</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="withdrawals" class="admin-page">
+                    <div class="card">
+                        <h2>Recent Withdrawals</h2>
+                        <table id="withdrawals-table">
+                            <thead>
+                                <tr><th>Date</th><th>User</th><th>Amount</th><th>Method</th><th>Account</th><th>Status</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="users" class="admin-page"><div class="card"><h2>Manage Users</h2><input type="text" id="search-user-input" placeholder="Search by User ID or Name..."><table id="users-table"><thead><tr><th>User ID</th><th>Name</th><th>Points</th><th>Referrals</th><th>Actions</th></tr></thead><tbody></tbody></table></div></div>
+                <div id="notice" class="admin-page"><div class="card"><h2>Send Notice to All Users</h2><p style="color:var(--light-text);">This notice will appear in every user's app.</p><textarea id="notice-input" rows="4" placeholder="Enter notice..."></textarea><button id="send-notice-btn" class="btn btn-edit">Send Notice</button><button id="remove-notice-btn" class="btn btn-reject" style="margin-left:10px;">Remove Notice</button></div></div>
+            </div>
         </main>
     </div>
 
 <script>
-    const firebaseConfig = { 
-        apiKey: "YOUR_API_KEY", 
-        authDomain: "YOUR_AUTH_DOMAIN", 
-        databaseURL: "YOUR_DATABASE_URL", 
-        projectId: "YOUR_PROJECT_ID"
-        // অনুগ্রহ করে উপরের firebaseConfig টি আপনার নিজের প্রজেক্টের তথ্য দিয়ে পূরণ করুন।
-    };
+    const firebaseConfig = { apiKey: "AIzaSyDVNsMeB1jzOcIqAJjryUYmipT_SKrJi9k", authDomain: "giveawaybd.firebaseapp.com", databaseURL: "https://giveawaybd-default-rtdb.firebaseio.com", projectId: "giveawaybd" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
+    let allUsersData = {};
 
+    // --- DOM Elements ---
     const loginView = document.getElementById('login-view');
     const adminView = document.getElementById('admin-view');
     const loginBtn = document.getElementById('login-btn');
 
+    // --- SECURE AUTHENTICATION LOGIC ---
     loginBtn.addEventListener('click', () => {
-        auth.signInWithEmailAndPassword(document.getElementById('email-input').value, document.getElementById('password-input').value)
-            .catch(e => alert(`Login Failed: ${e.message}`));
+        const email = document.getElementById('email-input').value;
+        const password = document.getElementById('password-input').value;
+        loginBtn.textContent = 'Logging in...';
+        loginBtn.disabled = true;
+
+        auth.signInWithEmailAndPassword(email, password)
+            .catch((error) => {
+                alert(`Login Failed: ${error.message}`);
+                loginBtn.textContent = 'Login';
+                loginBtn.disabled = false;
+            });
     });
 
     auth.onAuthStateChanged(user => {
         if (user) {
+            // User is securely logged in
             loginView.style.display = 'none';
-            adminView.style.display = 'flex';
-            if (!window.dataLoaded) {
+            adminView.style.display = 'block'; // Changed to 'block' to show the main container
+            if (!window.dataLoaded) { // Prevent re-loading data on minor auth state changes
                 loadInitialData();
-                window.dataLoaded = true;
+                window.dataLoaded = true; // Set a flag
             }
         } else {
+            // User is logged out
             loginView.style.display = 'flex';
             adminView.style.display = 'none';
-            window.dataLoaded = false;
+            window.dataLoaded = false; // Reset the flag
         }
     });
 
+
     function loadInitialData() {
-        setupEventListeners();
-        loadDashboardPage();
-        loadRequestsPage('withdrawals', 'pending');
-        loadRequestsPage('shop-orders', 'pending');
-        loadUsersPage();
-        loadSettingsPage();
-    }
-    
-    function setupEventListeners(){
+        console.log("Secure login successful. Loading all admin data.");
+        // Setup UI listeners that are inside the admin view
+        const sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebar-toggle').addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+        
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetId = link.getAttribute('href').substring(1);
-                
-                if (link.classList.contains('has-submenu')) {
-                    link.nextElementSibling.classList.toggle('open');
-                }
-                
-                document.querySelectorAll('.nav-link, .admin-page').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
                 link.classList.add('active');
                 document.getElementById(targetId).classList.add('active');
             });
         });
-        
-        document.querySelectorAll('.sub-link').forEach(link => {
-            link.addEventListener('click', e => {
-                e.preventDefault();
-                const page = link.dataset.page;
-                const status = link.dataset.status;
-                loadRequestsPage(page, status);
-                document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
-                document.getElementById(page).classList.add('active');
-            });
-        });
-    }
 
-    function loadDashboardPage(){
-        const page = document.getElementById('dashboard');
-        page.innerHTML = `<h1>Dashboard</h1>
-            <div class="dashboard-grid">
-                 <div class="stat-card blue"><div class="stat-card-info"><div id="total-users" class="value">0</div><div class="label">Total Users</div></div><div class="stat-card-icon">👥</div></div>
-                <div class="stat-card orange"><div class="stat-card-info"><div id="pending-withdrawals" class="value">0</div><div class="label">Pending Withdrawals</div></div><div class="stat-card-icon">💸</div></div>
-                <div class="stat-card green"><div class="stat-card-info"><div id="total-withdrawals" class="value">$0</div><div class="label">Total Withdrawn</div></div><div class="stat-card-icon">✅</div></div>
-                <div class="stat-card red"><div class="stat-card-info"><div id="pending-orders" class="value">0</div><div class="label">Pending Shop Orders</div></div><div class="stat-card-icon">🛒</div></div>
-            </div>`;
-        
-        db.ref('users').on('value', snap => { document.getElementById('total-users').innerText = snap.numChildren(); });
-        db.ref('withdrawals').orderByChild('status').equalTo('pending').on('value', snap => { 
-            const count = snap.numChildren();
-            document.getElementById('pending-withdrawals').innerText = count;
-            document.getElementById('withdraw-badge').innerText = count;
-        });
-        db.ref('withdrawals').orderByChild('status').equalTo('completed').on('value', snap => {
-            let total = 0; if(snap.exists()){ snap.forEach(c => { total += c.val().amount || 0; }); }
-            document.getElementById('total-withdrawals').innerText = `$${total.toFixed(2)}`;
-        });
-        db.ref('purchases').orderByChild('status').equalTo('pending').on('value', snap => {
-            const count = snap.numChildren();
-            document.getElementById('pending-orders').innerText = count;
-            document.getElementById('shop-badge').innerText = count;
-        });
-    }
+        // Load all data
+        loadSettings(); 
+        loadWithdrawals(); 
+        loadPurchases(); 
+        loadUsers();
 
-    function loadRequestsPage(type, status) {
-        const page = document.getElementById(type);
-        const title = type === 'withdrawals' ? 'Withdrawals' : 'Shop Orders';
-        const statusTitle = status.charAt(0).toUpperCase() + status.slice(1);
-        page.innerHTML = `<div class="card">
-            <h2>${statusTitle} ${title}</h2>
-            <table id="${type}-table"></table>
-        </div>`;
-        
-        renderRequestTable(type, status);
-    }
-
-    function renderRequestTable(type, status){
-        const table = document.getElementById(`${type}-table`);
-        const ref = db.ref(type);
-        const query = status === 'all' ? ref.orderByKey().limitToLast(100) : ref.orderByChild('status').equalTo(status === 'approved' ? 'completed' : status);
-        
-        query.on('value', snap => {
-            const isWithdrawal = type === 'withdrawals';
-            table.innerHTML = `<thead><tr><th>Date</th><th>User</th><th>${isWithdrawal ? 'Amount' : 'Item'}</th><th>${isWithdrawal ? 'Method' : 'Link'}</th><th>${isWithdrawal ? 'Account' : 'Cost'}</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody>`;
-            const tbody = table.querySelector('tbody');
-            if(!snap.exists()){
-                tbody.innerHTML = `<tr><td colspan="7" align="center">No ${status} requests found.</td></tr>`;
-                return;
-            }
-            const requests = [];
-            snap.forEach(c => requests.push({key: c.key, ...c.val()}));
-            requests.reverse().forEach(d => {
-                const row = tbody.insertRow();
-                row.innerHTML = createRow(d, isWithdrawal ? 'withdrawal' : 'purchase');
-            });
-        });
+        // Setup other event listeners
+        document.getElementById('save-settings-btn').addEventListener('click', saveAllSettings);
+        document.getElementById('add-method-btn').addEventListener('click', () => addMethodUI(`method_${Date.now()}`));
+        document.getElementById('add-shop-item-btn').addEventListener('click', () => addShopItemUI('', { title: '', price: 10, enabled: true, linkTitle: 'Link', placeholder: 'https://...' }));
+        document.getElementById('search-user-input').addEventListener('keyup', searchUsers);
+        document.getElementById('send-notice-btn').addEventListener('click', sendNotice);
+        document.getElementById('remove-notice-btn').addEventListener('click', removeNotice);
     }
     
-    function loadUsersPage(){ /* ... Logic to load users ... */ }
-    function loadSettingsPage(){ /* ... Logic to load and save settings ... */ }
+    // --- ALL DATA HANDLING FUNCTIONS ---
+
+    function saveAllSettings() {
+        const updates = {};
+        const settingFields = [ 'appName', 'botUsername', 'joinChannelUrl', 'adReward', 'dailyAdLimit', 'referralCommission', 'minWithdraw', 'maxWithdraw', 'isWithdrawEnabled' ];
+        settingFields.forEach(key => {
+            const el = document.getElementById(`setting-${key}`);
+            if (el) updates[key] = el.type === 'number' ? Number(el.value) : (el.tagName === 'SELECT' ? (el.value === 'true') : el.value);
+        });
+        updates.withdrawalMethods = {};
+        document.querySelectorAll('#withdrawal-methods-container .dynamic-item-container').forEach(item => {
+            const key = item.dataset.key;
+            const name = item.querySelector('.method-name').value.trim();
+            if (name) updates.withdrawalMethods[key] = { name: name, enabled: item.querySelector('.method-enabled').value === 'true' };
+        });
+        updates.shop = {};
+        document.querySelectorAll('#shop-settings-container .dynamic-item-container').forEach(item => {
+            const key = item.querySelector('.shop-key').value.trim();
+            if (key) updates.shop[key] = { title: item.querySelector('.shop-title').value, price: Number(item.querySelector('.shop-price').value), linkTitle: item.querySelector('.shop-link-title').value, placeholder: item.querySelector('.shop-placeholder').value, enabled: item.querySelector('.shop-enabled').value === 'true' };
+        });
+        updates.dailyBonusPoints = Array.from(document.querySelectorAll('.daily-bonus-input')).map(i => Number(i.value));
+        db.ref('settings').update(updates).then(() => alert('Settings saved successfully!'));
+    }
+
+    function loadSettings() {
+        db.ref('settings').on('value', snapshot => {
+            if (!snapshot.exists()) return;
+            const settings = snapshot.val();
+            const settingFields = [ 'appName', 'botUsername', 'joinChannelUrl', 'adReward', 'dailyAdLimit', 'referralCommission', 'minWithdraw', 'maxWithdraw', 'isWithdrawEnabled' ];
+            settingFields.forEach(key => {
+                const el = document.getElementById(`setting-${key}`);
+                if (el) {
+                    if (el.tagName === 'SELECT') el.value = settings[key]?.toString() || 'true';
+                    else el.value = settings[key] || (el.type === 'number' ? 0 : '');
+                }
+            });
+            document.getElementById('notice-input').value = settings.notice || '';
+            renderWithdrawalMethods(settings.withdrawalMethods || {});
+            renderShopItems(settings.shop || {});
+            renderDailyBonus(settings.dailyBonusPoints || [10, 20, 30, 40, 50, 60, 100]);
+        });
+    }
+
+    function renderWithdrawalMethods(methods) {
+        const container = document.getElementById('withdrawal-methods-container'); container.innerHTML = '';
+        Object.entries(methods).forEach(([key, value]) => addMethodUI(key, value));
+    }
+    function addMethodUI(key, value = { name: '', enabled: true }) {
+        const container = document.getElementById('withdrawal-methods-container');
+        const item = document.createElement('div');
+        item.className = 'dynamic-item-container';
+        item.dataset.key = key;
+        item.innerHTML = `<button class="delete-btn" onclick="this.parentElement.remove()">X</button><div class="setting-grid"><div class="form-group"><label>Method Name</label><input type="text" class="method-name" value="${value.name}" placeholder="e.g., Bkash"></div><div class="form-group"><label>Status</label><select class="method-enabled"><option value="true" ${value.enabled ? 'selected':''}>Enabled</option><option value="false" ${!value.enabled ? 'selected':''}>Disabled</option></select></div></div>`;
+        container.appendChild(item);
+    }
+    function renderShopItems(items) {
+        const container = document.getElementById('shop-settings-container'); container.innerHTML = '';
+        Object.entries(items).forEach(([key, value]) => addShopItemUI(key, value));
+    }
+    function addShopItemUI(key, value) {
+        const container = document.getElementById('shop-settings-container');
+        const item = document.createElement('div');
+        item.className = 'dynamic-item-container';
+        item.innerHTML = `<button class="delete-btn" onclick="this.parentElement.remove()">X</button><h4>Service Details</h4><div class="setting-grid"><div class="form-group"><label>Service Key (e.g., 'members')</label><input type="text" class="shop-key" value="${key}"></div><div class="form-group"><label>Service Title</label><input type="text" class="shop-title" value="${value.title}"></div><div class="form-group"><label>Price (per item)</label><input type="number" class="shop-price" value="${value.price}"></div><div class="form-group"><label>Status</label><select class="shop-enabled"><option value="true" ${value.enabled ? 'selected' : ''}>Enabled</option><option value="false" ${!value.enabled ? 'selected' : ''}>Disabled</option></select></div></div><h5>User Input Fields</h5><div class="setting-grid"><div class="form-group"><label>Link Input Title</label><input type="text" class="shop-link-title" value="${value.linkTitle}"></div><div class="form-group"><label>Link Input Placeholder</label><input type="text" class="shop-placeholder" value="${value.placeholder}"></div></div>`;
+        container.appendChild(item);
+    }
+    function renderDailyBonus(points) {
+        const container = document.getElementById('daily-bonus-container'); container.innerHTML = '';
+        for (let i=0; i<7; i++) container.innerHTML += `<div class="form-group"><label>Day ${i+1} Points</label><input type="number" class="daily-bonus-input" value="${points[i] || 0}"></div>`;
+    }
 
     const createRow = (d, type) => {
         const date = new Date(type === 'purchase' ? d.createdAt : d.requestedAt).toLocaleString();
         const status = d.status || 'pending';
-        let statusText = status.charAt(0).toUpperCase() + status.slice(1);
-        let statusStyle = 'color: var(--warning-color);';
-        if (status === 'completed' || status === 'approved') { statusText = 'Approved'; statusStyle = 'color: var(--success-color);'; }
-        else if (status === 'rejected') { statusText = 'Rejected'; statusStyle = 'color: var(--danger-color);'; }
-        
-        const actions = d.status === 'pending'
-            ? `<button class="btn btn-approve" onclick="handleRequest('${type}','${d.key}','approved')">Approve</button>
-               <button class="btn btn-reject" onclick="handleRequest('${type}','${d.key}','rejected')">Reject</button>`
+        let statusStyle = '';
+        if (status === 'completed') statusStyle = 'color: var(--success-color); font-weight: bold; text-transform: capitalize;';
+        else if (status === 'rejected') statusStyle = 'color: var(--danger-color); font-weight: bold; text-transform: capitalize;';
+        else statusStyle = 'color: var(--warning-color); font-weight: bold; text-transform: capitalize;';
+        const actions = status === 'pending'
+            ? `<button class="btn btn-approve" onclick="handleRequest('${type}','${d.key}','completed')">Approve</button>
+               <button class="btn btn-reject" onclick="handleRequest('${type}','${d.key}','rejected')" style="margin-left:5px;">Reject</button>`
             : `<span>Processed</span>`;
-        
         const info = type === 'purchase'
-            ? `<td>${d.quantity} ${d.itemType}</td><td><a href="${d.link}" target="_blank">View</a></td><td>${d.cost}</td>`
+            ? `<td>${d.quantity} ${d.itemType}</td><td><a href="${d.link}" target="_blank">View Link</a></td><td>${d.cost}</td>`
             : `<td>${d.amount}</td><td>${d.method}</td><td>${d.account}</td>`;
-
-        return `<td>${date}</td><td>${d.userName} (${d.userId})</td>${info}<td style="${statusStyle}">${statusText}</td><td>${actions}</td>`;
+        return `<td>${date}</td><td>${d.userName} (${d.userId})</td>${info}<td style="${statusStyle}">${status}</td><td>${actions}</td>`;
     };
+    
+    function loadPurchases() { 
+        db.ref('purchases').orderByKey().limitToLast(100).on('value', s => { 
+            const tbody = document.querySelector("#purchases-table tbody"); 
+            tbody.innerHTML = ''; 
+            if (s.exists()) {
+                const requests = [];
+                s.forEach(c => requests.push({key: c.key, ...c.val()}));
+                requests.reverse().forEach(d => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = createRow(d, 'purchase');
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="7" align="center">No recent orders found.</td></tr>`; 
+            }
+        }); 
+    }
+
+    function loadWithdrawals() { 
+        db.ref('withdrawals').orderByKey().limitToLast(100).on('value', s => { 
+            const tbody = document.querySelector("#withdrawals-table tbody"); 
+            tbody.innerHTML = ''; 
+            if (s.exists()) {
+                const requests = [];
+                s.forEach(c => requests.push({key: c.key, ...c.val()}));
+                requests.reverse().forEach(d => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = createRow(d, 'withdrawal');
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="7" align="center">No recent withdrawals found.</td></tr>`; 
+            }
+        }); 
+    }
 
     window.handleRequest = (type, key, newStatus) => {
         const ref = db.ref(`${type}s/${key}`);
         ref.once('value').then(s => {
-            if (!s.exists() || s.val().status !== 'pending') {
-                alert('Request already processed or does not exist.');
-                return;
-            }
+            if (!s.exists()) return;
             const data = s.val();
-            const finalStatus = newStatus === 'approved' ? 'completed' : newStatus;
-            
+            if (data.status !== 'pending') { alert('This request has already been processed.'); return; }
             if (newStatus === 'rejected') {
                 const pointsToReturn = data.cost || data.amount;
                 db.ref(`users/${data.userId}/points`).transaction(p => (p || 0) + pointsToReturn)
-                    .then(() => ref.update({ status: finalStatus }))
+                    .then(() => ref.update({ status: newStatus }))
                     .then(() => alert(`${type} rejected, points returned.`));
             } else {
-                 ref.update({ status: finalStatus }).then(() => alert(`${type} approved.`));
+                ref.update({ status: newStatus }).then(() => alert(`${type} approved.`));
             }
         });
     };
+    
+    function loadUsers() { db.ref('users').on('value', s => { if(s.exists()){ allUsersData = s.val(); renderUsers(allUsersData); } }); }
+    function renderUsers(users) {
+        const tbody = document.querySelector("#users-table tbody"); 
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        Object.entries(users).forEach(([uid, d]) => {
+            tbody.innerHTML += `<tr><td>${uid}</td><td>${d.name||'N/A'}</td><td>${d.points||0}</td><td>${d.stats?.referrals||0}</td><td><button class="btn btn-edit" onclick="editPoints('${uid}','${d.name||''}', ${d.points||0})">Edit Points</button></td></tr>`;
+        });
+    }
+    function searchUsers(e) {
+        const term = e.target.value.toLowerCase();
+        if(!term) { renderUsers(allUsersData); return; }
+        const filtered = Object.fromEntries(Object.entries(allUsersData).filter(([uid, d]) => uid.includes(term) || (d.name||'').toLowerCase().includes(term)));
+        renderUsers(filtered);
+    }
+    window.editPoints = (uid, name, currentPoints) => {
+        const newPts = prompt(`Enter new points for ${name} (${uid}):`, currentPoints);
+        if(newPts !== null && !isNaN(newPts)) db.ref(`users/${uid}/points`).set(Number(newPts));
+    };
+    
+    function sendNotice() {
+        const text = document.getElementById('notice-input').value.trim();
+        if(text && confirm('Are you sure you want to send this notice?')) {
+            db.ref('settings/notice').set(text).then(() => alert('Notice sent!'));
+        }
+    }
+    function removeNotice() {
+        if(confirm('Are you sure you want to remove the notice?')) {
+            db.ref('settings/notice').remove().then(() => {
+                document.getElementById('notice-input').value = '';
+                alert('Notice removed!');
+            });
+        }
+    }
 </script>
 </body>
 </html>
