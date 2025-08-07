@@ -22,26 +22,35 @@
         input:focus { border-color: var(--secondary-color); outline: none; }
         .btn { padding: 12px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; transition: background-color 0.3s; }
         .btn-primary { background-color: var(--secondary-color); color: white; width: 100%; }
-        .sidebar { width: 260px; background: #34495e; height: 100vh; position: fixed; color: var(--white); overflow-y: auto; }
+        .sidebar { width: 260px; background: #34495e; height: 100vh; position: fixed; color: var(--white); }
         .sidebar-header { padding: 20px; text-align: center; background-color: rgba(0,0,0,0.2); }
         .sidebar-header h2 { margin: 0; font-size: 24px; }
         .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
-        .sidebar-nav ul li a { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; color: #ecf0f1; text-decoration: none; font-weight: 500; transition: background-color 0.3s; cursor: pointer; }
+        .sidebar-nav ul li a { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; color: #ecf0f1; text-decoration: none; font-weight: 500; transition: background-color 0.3s; }
         .sidebar-nav ul li a:hover { background-color: rgba(0,0,0,0.2); }
         .sidebar-nav ul li a.active { background-color: var(--secondary-color); }
         .submenu { list-style: none; padding-left: 0; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
         .submenu.open { max-height: 500px; }
-        .submenu li a { padding-left: 40px; background-color: rgba(0,0,0,0.15); font-size: 14px; }
+        .submenu li a { padding-left: 40px; background-color: rgba(0,0,0,0.15); }
         .badge { background-color: var(--danger-color); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
         .main-content { margin-left: 260px; padding: 30px; width: calc(100% - 260px); }
         .admin-page { display: none; }
         .admin-page.active { display: block; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; }
+        .stat-card { background: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
+        .stat-card-info .value { font-size: 28px; font-weight: 700; }
+        .stat-card-info .label { font-size: 14px; color: #7f8c8d; }
+        .stat-card-icon { font-size: 40px; opacity: 0.5; }
+        .stat-card.blue { border-left: 5px solid #3498db; } .stat-card.blue .stat-card-icon { color: #3498db; }
+        .stat-card.green { border-left: 5px solid #2ecc71; } .stat-card.green .stat-card-icon { color: #2ecc71; }
+        .stat-card.orange { border-left: 5px solid #f39c12; } .stat-card.orange .stat-card-icon { color: #f39c12; }
+        .stat-card.red { border-left: 5px solid #e74c3c; } .stat-card.red .stat-card-icon { color: #e74c3c; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 15px; border-bottom: 1px solid var(--border-color); text-align: left; }
         thead { background-color: #f5f6f7; }
-        .btn-approve { background-color: var(--success-color); color: white; font-size: 14px; padding: 8px 12px; }
-        .btn-reject { background-color: var(--danger-color); color: white; font-size: 14px; padding: 8px 12px; }
+        .btn-approve { background-color: var(--success-color); color: white; }
+        .btn-reject { background-color: var(--danger-color); color: white; }
     </style>
 </head>
 <body>
@@ -62,7 +71,7 @@
                 <ul>
                     <li><a href="#dashboard" class="nav-link active"><span>📊 Dashboard</span></a></li>
                     <li>
-                        <a class="nav-link has-submenu">
+                        <a href="#withdrawals" class="nav-link has-submenu">
                             <span>💸 Withdrawals</span>
                             <span id="withdraw-badge" class="badge">0</span>
                         </a>
@@ -74,7 +83,7 @@
                         </ul>
                     </li>
                      <li>
-                        <a class="nav-link has-submenu">
+                        <a href="#shop-orders" class="nav-link has-submenu">
                             <span>🛒 Shop Orders</span>
                             <span id="shop-badge" class="badge">0</span>
                         </a>
@@ -91,39 +100,22 @@
             </nav>
         </aside>
         <main class="main-content">
-            <div id="dashboard" class="admin-page active">
-                 <!-- Dashboard content will be loaded here -->
-            </div>
-            <div id="withdrawals" class="admin-page">
-                 <!-- Withdrawals content will be loaded here -->
-            </div>
-            <div id="shop-orders" class="admin-page">
-                 <!-- Shop Orders content will be loaded here -->
-            </div>
-            <div id="users" class="admin-page">
-                 <!-- Users content will be loaded here -->
-            </div>
-            <div id="settings" class="admin-page">
-                 <!-- Settings content will be loaded here -->
-            </div>
+            <div id="dashboard" class="admin-page active"></div>
+            <div id="withdrawals" class="admin-page"></div>
+            <div id="shop-orders" class="admin-page"></div>
+            <div id="users" class="admin-page"></div>
+            <div id="settings" class="admin-page"></div>
         </main>
     </div>
 
 <script>
-    // ===================================================================================
-    // ধাপ ১: অনুগ্রহ করে নিচের এই অংশে আপনার নিজের Firebase প্রজেক্টের আসল তথ্যগুলো পেস্ট করুন।
-    // ===================================================================================
-    const firebaseConfig = {
-      apiKey: "AIzaSy... আপনার আসল কী এখানে পেস্ট করুন ...",
-      authDomain: "your-project-id.firebaseapp.com",
-      databaseURL: "https://your-project-id.firebaseio.com",
-      projectId: "your-project-id",
-      storageBucket: "your-project-id.appspot.com",
-      messagingSenderId: "1234567890",
-      appId: "1:1234567890:web:abcdef123456"
+    const firebaseConfig = { 
+        apiKey: "YOUR_API_KEY", 
+        authDomain: "YOUR_AUTH_DOMAIN", 
+        databaseURL: "YOUR_DATABASE_URL", 
+        projectId: "YOUR_PROJECT_ID"
+        // অনুগ্রহ করে উপরের firebaseConfig টি আপনার নিজের প্রজেক্টের তথ্য দিয়ে পূরণ করুন।
     };
-    // ===================================================================================
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
@@ -133,14 +125,8 @@
     const loginBtn = document.getElementById('login-btn');
 
     loginBtn.addEventListener('click', () => {
-        const email = document.getElementById('email-input').value;
-        const password = document.getElementById('password-input').value;
-        loginBtn.textContent = "Logging in...";
-        auth.signInWithEmailAndPassword(email, password)
-            .catch(e => {
-                alert(`Login Failed: ${e.message}`);
-                loginBtn.textContent = "Login";
-            });
+        auth.signInWithEmailAndPassword(document.getElementById('email-input').value, document.getElementById('password-input').value)
+            .catch(e => alert(`Login Failed: ${e.message}`));
     });
 
     auth.onAuthStateChanged(user => {
@@ -161,8 +147,8 @@
     function loadInitialData() {
         setupEventListeners();
         loadDashboardPage();
-        loadRequestsPage('withdrawals', 'pending'); // Default view
-        loadRequestsPage('shop-orders', 'pending'); // Default view
+        loadRequestsPage('withdrawals', 'pending');
+        loadRequestsPage('shop-orders', 'pending');
         loadUsersPage();
         loadSettingsPage();
     }
@@ -171,15 +157,15 @@
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                const targetId = link.getAttribute('href')?.substring(1);
+                const targetId = link.getAttribute('href').substring(1);
                 
                 if (link.classList.contains('has-submenu')) {
                     link.nextElementSibling.classList.toggle('open');
-                } else if (targetId) {
-                    document.querySelectorAll('.nav-link, .admin-page').forEach(el => el.classList.remove('active'));
-                    link.classList.add('active');
-                    document.getElementById(targetId).classList.add('active');
                 }
+                
+                document.querySelectorAll('.nav-link, .admin-page').forEach(el => el.classList.remove('active'));
+                link.classList.add('active');
+                document.getElementById(targetId).classList.add('active');
             });
         });
         
@@ -189,9 +175,8 @@
                 const page = link.dataset.page;
                 const status = link.dataset.status;
                 loadRequestsPage(page, status);
-                document.querySelectorAll('.nav-link, .admin-page').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
                 document.getElementById(page).classList.add('active');
-                link.closest('ul').previousElementSibling.classList.add('active');
             });
         });
     }
@@ -200,14 +185,26 @@
         const page = document.getElementById('dashboard');
         page.innerHTML = `<h1>Dashboard</h1>
             <div class="dashboard-grid">
-                <!-- Dashboard cards will go here -->
+                 <div class="stat-card blue"><div class="stat-card-info"><div id="total-users" class="value">0</div><div class="label">Total Users</div></div><div class="stat-card-icon">👥</div></div>
+                <div class="stat-card orange"><div class="stat-card-info"><div id="pending-withdrawals" class="value">0</div><div class="label">Pending Withdrawals</div></div><div class="stat-card-icon">💸</div></div>
+                <div class="stat-card green"><div class="stat-card-info"><div id="total-withdrawals" class="value">$0</div><div class="label">Total Withdrawn</div></div><div class="stat-card-icon">✅</div></div>
+                <div class="stat-card red"><div class="stat-card-info"><div id="pending-orders" class="value">0</div><div class="label">Pending Shop Orders</div></div><div class="stat-card-icon">🛒</div></div>
             </div>`;
         
+        db.ref('users').on('value', snap => { document.getElementById('total-users').innerText = snap.numChildren(); });
         db.ref('withdrawals').orderByChild('status').equalTo('pending').on('value', snap => { 
-            document.getElementById('withdraw-badge').innerText = snap.numChildren();
+            const count = snap.numChildren();
+            document.getElementById('pending-withdrawals').innerText = count;
+            document.getElementById('withdraw-badge').innerText = count;
+        });
+        db.ref('withdrawals').orderByChild('status').equalTo('completed').on('value', snap => {
+            let total = 0; if(snap.exists()){ snap.forEach(c => { total += c.val().amount || 0; }); }
+            document.getElementById('total-withdrawals').innerText = `$${total.toFixed(2)}`;
         });
         db.ref('purchases').orderByChild('status').equalTo('pending').on('value', snap => {
-            document.getElementById('shop-badge').innerText = snap.numChildren();
+            const count = snap.numChildren();
+            document.getElementById('pending-orders').innerText = count;
+            document.getElementById('shop-badge').innerText = count;
         });
     }
 
@@ -219,6 +216,7 @@
             <h2>${statusTitle} ${title}</h2>
             <table id="${type}-table"></table>
         </div>`;
+        
         renderRequestTable(type, status);
     }
 
@@ -252,7 +250,7 @@
         const status = d.status || 'pending';
         let statusText = status.charAt(0).toUpperCase() + status.slice(1);
         let statusStyle = 'color: var(--warning-color);';
-        if (status === 'completed') { statusText = 'Approved'; statusStyle = 'color: var(--success-color);'; }
+        if (status === 'completed' || status === 'approved') { statusText = 'Approved'; statusStyle = 'color: var(--success-color);'; }
         else if (status === 'rejected') { statusText = 'Rejected'; statusStyle = 'color: var(--danger-color);'; }
         
         const actions = d.status === 'pending'
@@ -268,7 +266,7 @@
     };
 
     window.handleRequest = (type, key, newStatus) => {
-        const ref = db.ref(type === 'withdrawal' ? `withdrawals/${key}`: `purchases/${key}`);
+        const ref = db.ref(`${type}s/${key}`);
         ref.once('value').then(s => {
             if (!s.exists() || s.val().status !== 'pending') {
                 alert('Request already processed or does not exist.');
@@ -289,4 +287,4 @@
     };
 </script>
 </body>
-    </html>
+</html>
