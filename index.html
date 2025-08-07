@@ -6,7 +6,6 @@
     <title>Softcity</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- === GIGAPUB SDK === -->
     <script src="https://ad.gigapub.tech/script?id=1327"></script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,11 +14,6 @@
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <!-- ### CUSTOM NOTIFICATION SCRIPT ### -->
-    <!-- আপনার send-notification.js ফাইলটি এখানে যুক্ত করুন -->
-    <!-- <script src="./send-notification.js"></script> -->
-
 
     <style>
         :root {
@@ -128,9 +122,7 @@
     </div>
 
     <div class="container">
-        <!-- Views Wrapper -->
         <div id="views-container">
-            <!-- Home View -->
             <div id="home-view" class="view">
                  <div class="profile-card">
                     <div class="profile-pic"><span class="profile-pic-initial"></span></div>
@@ -155,7 +147,6 @@
                 </div>
             </div>
 
-            <!-- Tasks View -->
             <div id="tasks-view" class="view hidden">
                 <div class="card">
                     <h3 class="card-title">Promote Services</h3>
@@ -172,7 +163,6 @@
                 </div>
             </div>
 
-            <!-- Shop View -->
             <div id="shop-view" class="view hidden">
                  <div class="card">
                     <h3 class="card-title">🛒 Shop</h3>
@@ -183,7 +173,6 @@
                 </div>
             </div>
 
-            <!-- Bonus View -->
             <div id="bonus-view" class="view hidden">
                 <div class="card bonus-container">
                     <h3 class="card-title" style="color:white; border:none; text-align:center;">Daily Check-in Bonus</h3>
@@ -194,7 +183,6 @@
                 </div>
             </div>
             
-            <!-- Withdraw, History, Referral, Leaderboard Views -->
             <div id="withdraw-view" class="view hidden">
                 <div class="card" id="withdraw-card">
                     <h3 class="card-title">Withdraw Points</h3>
@@ -271,16 +259,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const userId = tg.initDataUnsafe?.user?.id || 'test_user_12345';
     const userName = tg.initDataUnsafe?.user?.first_name || 'Test User';
     const userPhoto = tg.initDataUnsafe?.user?.photo_url || null;
-    
+
     const views = document.querySelectorAll('.view');
     const navItems = document.querySelectorAll('.nav-item');
 
+    // --- Helper function to render profile picture ---
+    function renderProfilePic(container, name, photoUrl) {
+        container.innerHTML = '';
+        if (photoUrl) {
+            const img = document.createElement('img');
+            img.src = photoUrl;
+            img.alt = name?.charAt(0) || 'U';
+            img.onerror = () => {
+                // If image fails to load, fallback to initial
+                const initial = (name || 'U').charAt(0).toUpperCase();
+                container.innerHTML = `<span class="profile-pic-initial">${initial}</span>`;
+            };
+            container.appendChild(img);
+        } else {
+            const initial = (name || 'U').charAt(0).toUpperCase();
+            container.innerHTML = `<span class="profile-pic-initial">${initial}</span>`;
+        }
+    }
+
     // --- Notification Function (Placeholder) ---
-    // এটি একটি ডেমো ফাংশন। আপনার send-notification.js এর আসল ফাংশন দিয়ে এটি রিপ্লেস করুন।
     function sendNotification(message) {
         console.log("Sending notification to bot:", message);
-        // আপনার আসল নোটিফিকেশন পাঠানোর কোড এখানে লিখুন।
-        // যেমন: window.sendTelegramNotification(message);
     }
 
     // --- Navigation ---
@@ -315,12 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('withdraw-balance').textContent = userData.points || 0;
         
         const profilePicDiv = document.querySelector('.profile-pic');
-        if (userData.profilePhotoUrl) {
-            profilePicDiv.innerHTML = `<img id="profile-img" src="${userData.profilePhotoUrl}" alt="P">`;
-        } else {
-            const initial = (userData.name || 'U').charAt(0).toUpperCase();
-            profilePicDiv.innerHTML = `<span class="profile-pic-initial">${initial}</span>`;
-        }
+        renderProfilePic(profilePicDiv, userData.name, userData.profilePhotoUrl);
         
         document.getElementById('stats-total-ads').textContent = userData.stats?.totalAdsWatched || 0;
         document.getElementById('stats-referrals').textContent = userData.stats?.referrals || 0;
@@ -414,18 +413,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const rank = index + 1;
                 const referrals = user.stats?.referrals || 0;
                 
-                let profilePicHTML;
-                if(user.profilePhotoUrl) {
-                    profilePicHTML = `<div class="leaderboard-pic"><img src="${user.profilePhotoUrl}" alt="${user.name?.charAt(0) || 'U'}"></div>`;
-                } else {
-                    const initial = (user.name || 'U').charAt(0).toUpperCase();
-                    profilePicHTML = `<div class="leaderboard-pic"><span class="leaderboard-pic-initial">${initial}</span></div>`;
-                }
-
+                const profilePicContainer = document.createElement('div');
+                profilePicContainer.className = 'leaderboard-pic';
+                renderProfilePic(profilePicContainer, user.name, user.profilePhotoUrl);
+                
                 const itemHTML = `
                     <div class="leaderboard-item rank-${rank}">
                         <div class="leaderboard-rank-badge">#${rank}</div>
-                        ${profilePicHTML}
+                        ${profilePicContainer.outerHTML}
                         <div class="leaderboard-info">
                             <div class="name">
                                 ${rank === 1 ? crownSVG : ''}
@@ -753,7 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     name: userName, 
                     points: 0, 
                     referralCode: referralCode,
-                    profilePhotoUrl: userPhoto, // Save profile photo URL on creation
+                    profilePhotoUrl: userPhoto, // Save profile photo URL from Telegram
                     stats: { totalAdsWatched: 0, adsWatchedToday: 0, referrals: 0 }, 
                     bonus: { streak: 0 }, 
                     createdAt: new Date().toISOString() 
